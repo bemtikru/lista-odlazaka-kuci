@@ -554,63 +554,205 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('landscape', 'mm', 'a4');
 
-            // All 22 people in order
+            // All 22 people in exact order from template
             const allPeople = [
-                "Božičević Josip",
-                "Božičević Maks Anton",
-                "Bernardić Niko",
-                "Cetinić Petar",
-                "Ćalić Lucas",
-                "Dasović Mislav",
-                "Ferara Patrik",
-                "Herceg Mihael",
-                "Išek Dominik",
-                "Jerčić Duje",
-                "Kukuruzović Slavko",
-                "Malnar Luka",
-                "Maračić Luka",
-                "Mičurin Marko",
-                "Milošević Aron",
-                "Rendulić Noa Izak",
-                "Sabljak Marko",
-                "Štemberger Fran",
-                "Tokić Gabriel",
-                "Tomljanović Petar",
-                "Turk Niko",
-                "Žic David"
+                { num: 1, prezime: "Božičević", ime: "Josip" },
+                { num: 2, prezime: "Božičević", ime: "Maks Anton" },
+                { num: 3, prezime: "Bernardić", ime: "Niko" },
+                { num: 4, prezime: "Cetinić", ime: "Petar" },
+                { num: 5, prezime: "Ćalić", ime: "Lucas" },
+                { num: 6, prezime: "Dasović", ime: "Mislav" },
+                { num: 7, prezime: "Ferara", ime: "Patrik" },
+                { num: 8, prezime: "Herceg", ime: "Mihael" },
+                { num: 9, prezime: "Išek", ime: "Dominik" },
+                { num: 10, prezime: "Jerčić", ime: "Duje" },
+                { num: 11, prezime: "Kukuruzović", ime: "Slavko" },
+                { num: 12, prezime: "Malnar", ime: "Luka" },
+                { num: 13, prezime: "Maračić", ime: "Luka" },
+                { num: 14, prezime: "Mičurin", ime: "Marko" },
+                { num: 15, prezime: "Milošević", ime: "Aron" },
+                { num: 16, prezime: "Rendulić", ime: "Noa Izak" },
+                { num: 17, prezime: "Sabljak", ime: "Marko" },
+                { num: 18, prezime: "Štemberger", ime: "Fran" },
+                { num: 19, prezime: "Tokić", ime: "Gabriel" },
+                { num: 20, prezime: "Tomljanović", ime: "Petar" },
+                { num: 21, prezime: "Turk", ime: "Niko" },
+                { num: 22, prezime: "Žic", ime: "David" }
             ];
 
             // Create data map for quick lookup
             const dataMap = {};
             weekRows.forEach(row => {
-                const name = row[3]; // ime_prezime column
-                dataMap[name] = {
-                    ostajem: row[5] || '-',  // ostajem cijeli vikend
-                    idemPrije: row[4] || '-', // idem prije petka
-                    petakOdlazak: row[6] || '-',
-                    petakRucak: row[7] || '-',
-                    petakVecera: row[8] || '-',
-                    subotaOdlazak: row[9] || '-',
-                    subotaRucak: row[10] || '-',
-                    subotaVecera: row[11] || '-',
-                    nedjeljaRucak: row[12] || '-',
-                    nedjeljaVecera: row[13] || '-'
+                const fullName = row[3]; // ime_prezime column
+                dataMap[fullName] = {
+                    nedostaje: row[5] === 'DA' ? '' : '',  // NEDOSTAJE column (empty for now)
+                    ostaje: row[5] === 'DA' ? 'DA' : '',   // OSTAJE column - from "ostajem cijeli vikend"
+                    petakOdlazak: row[6] && row[6] !== '-' ? row[6] : ':',
+                    petakRucak: row[7] === 'DA' ? 'DA' : '',
+                    petakVecera: row[8] === 'DA' ? 'DA' : '',
+                    subotaOdlazak: row[9] && row[9] !== '-' ? row[9] : ':',
+                    subotaRucak: row[10] === 'DA' ? 'DA' : '',
+                    subotaVecera: row[11] === 'DA' ? 'DA' : '',
+                    nedjeljaRucak: row[12] === 'DA' ? 'DA' : '',
+                    nedjeljaVecera: row[13] === 'DA' ? 'DA' : ''
                 };
             });
 
-            // Title
-            doc.setFontSize(11);
+            // Set up the page
+            doc.setFont('helvetica');
+            
+            // Title - centered at top
+            doc.setFontSize(12);
             doc.setFont('helvetica', 'bold');
             doc.text('7. ODGOJNA SKUPINA', 148, 15, { align: 'center' });
-            doc.text(`ODLAZAK KUĆI _____________`, 148, 21, { align: 'center' });
+            doc.text('ODLAZAK KUĆI ______________', 148, 22, { align: 'center' });
 
-            // Table body data
-            const tableBody = allPeople.map((person, index) => {
-                const [prezime, ...imeArr] = person.split(' ');
-                const ime = imeArr.join(' ');
-                const data = dataMap[person] || {
-                    ostajem: '',
-                    idemPrije: '',
+            // Define precise column widths and positions
+            const startX = 10;
+            const startY = 35;
+            const rowHeight = 8.2;
+            
+            const colWidths = {
+                rbr: 12,        // R.BR.
+                prezime: 25,    // PREZIME
+                ime: 22,        // IME
+                nedostaje: 18,  // NEDOSTAJE
+                ostaje: 18,     // OSTAJE
+                petakVrijeme: 16,   // PETAK vrijeme
+                petakRucak: 16,     // PETAK ručak
+                petakVecera: 16,    // PETAK večera
+                subotaVrijeme: 16,  // SUBOTA vrijeme
+                subotaRucak: 16,    // SUBOTA ručak
+                subotaVecera: 16,   // SUBOTA večera
+                nedjeljaRucak: 16,  // NEDJELJA ručak
+                nedjeljaVecera: 16  // NEDJELJA večera
+            };
+
+            // Draw table borders manually for precise control
+            const drawCell = (x, y, width, height, text, options = {}) => {
+                // Draw border
+                doc.setLineWidth(0.3);
+                doc.rect(x, y, width, height);
+                
+                // Fill background if specified
+                if (options.fillColor) {
+                    doc.setFillColor(...options.fillColor);
+                    doc.rect(x, y, width, height, 'F');
+                    doc.rect(x, y, width, height); // Redraw border
+                }
+                
+                // Set text properties
+                doc.setFontSize(options.fontSize || 9);
+                doc.setFont('helvetica', options.fontStyle || 'normal');
+                doc.setTextColor(options.textColor || [0, 0, 0]);
+                
+                // Draw text
+                const textX = x + (options.align === 'center' ? width / 2 : 2);
+                const textY = y + height / 2 + (options.multiline ? -2 : 2);
+                
+                if (options.multiline && Array.isArray(text)) {
+                    text.forEach((line, i) => {
+                        doc.text(line, textX, textY + (i * 3.5), { align: options.align || 'left' });
+                    });
+                } else {
+                    doc.text(String(text || ''), textX, textY, { align: options.align || 'left' });
+                }
+            };
+
+            // Draw header row 1 (merged cells)
+            let currentX = startX;
+            
+            drawCell(currentX, startY, colWidths.rbr, 16, 'R.BR.', { 
+                fontSize: 8, fontStyle: 'bold', align: 'center', fillColor: [255, 255, 255] 
+            });
+            currentX += colWidths.rbr;
+            
+            drawCell(currentX, startY, colWidths.prezime, 16, 'PREZIME', { 
+                fontSize: 8, fontStyle: 'bold', align: 'center', fillColor: [255, 255, 255] 
+            });
+            currentX += colWidths.prezime;
+            
+            drawCell(currentX, startY, colWidths.ime, 16, 'IME', { 
+                fontSize: 8, fontStyle: 'bold', align: 'center', fillColor: [255, 255, 255] 
+            });
+            currentX += colWidths.ime;
+            
+            drawCell(currentX, startY, colWidths.nedostaje, 16, ['NEDOSTAJE'], { 
+                fontSize: 7, fontStyle: 'bold', align: 'center', fillColor: [255, 255, 255], multiline: true 
+            });
+            currentX += colWidths.nedostaje;
+            
+            drawCell(currentX, startY, colWidths.ostaje, 16, ['OSTAJE', '- napsati razlog'], { 
+                fontSize: 7, fontStyle: 'bold', align: 'center', fillColor: [255, 255, 255], multiline: true 
+            });
+            currentX += colWidths.ostaje;
+            
+            // PETAK header (light blue)
+            const petakWidth = colWidths.petakVrijeme + colWidths.petakRucak + colWidths.petakVecera;
+            drawCell(currentX, startY, petakWidth, 8, 'PETAK', { 
+                fontSize: 9, fontStyle: 'bold', align: 'center', fillColor: [173, 216, 230] 
+            });
+            
+            // PETAK sub-headers
+            drawCell(currentX, startY + 8, colWidths.petakVrijeme, 8, ['vrijeme', 'odlaska', '(hh:mm)'], { 
+                fontSize: 6, fontStyle: 'bold', align: 'center', fillColor: [173, 216, 230], multiline: true 
+            });
+            currentX += colWidths.petakVrijeme;
+            
+            drawCell(currentX, startY + 8, colWidths.petakRucak, 8, ['prijava', 'RUČAK'], { 
+                fontSize: 7, fontStyle: 'bold', align: 'center', fillColor: [173, 216, 230], multiline: true, textColor: [255, 0, 0] 
+            });
+            currentX += colWidths.petakRucak;
+            
+            drawCell(currentX, startY + 8, colWidths.petakVecera, 8, ['prijava', 'VEČERA'], { 
+                fontSize: 7, fontStyle: 'bold', align: 'center', fillColor: [173, 216, 230], multiline: true, textColor: [255, 0, 0] 
+            });
+            currentX += colWidths.petakVecera;
+            
+            // SUBOTA header (medium blue)
+            const subotaWidth = colWidths.subotaVrijeme + colWidths.subotaRucak + colWidths.subotaVecera;
+            drawCell(currentX, startY, subotaWidth, 8, 'SUBOTA', { 
+                fontSize: 9, fontStyle: 'bold', align: 'center', fillColor: [135, 206, 250] 
+            });
+            
+            // SUBOTA sub-headers
+            drawCell(currentX, startY + 8, colWidths.subotaVrijeme, 8, ['vrijeme', 'odlaska', '(hh:mm)'], { 
+                fontSize: 6, fontStyle: 'bold', align: 'center', fillColor: [135, 206, 250], multiline: true 
+            });
+            currentX += colWidths.subotaVrijeme;
+            
+            drawCell(currentX, startY + 8, colWidths.subotaRucak, 8, ['prijava', 'RUČAK'], { 
+                fontSize: 7, fontStyle: 'bold', align: 'center', fillColor: [135, 206, 250], multiline: true, textColor: [255, 0, 0] 
+            });
+            currentX += colWidths.subotaRucak;
+            
+            drawCell(currentX, startY + 8, colWidths.subotaVecera, 8, ['prijava', 'VEČERA'], { 
+                fontSize: 7, fontStyle: 'bold', align: 'center', fillColor: [135, 206, 250], multiline: true, textColor: [255, 0, 0] 
+            });
+            currentX += colWidths.subotaVecera;
+            
+            // NEDJELJA header (light steel blue)
+            const nedjeljaWidth = colWidths.nedjeljaRucak + colWidths.nedjeljaVecera;
+            drawCell(currentX, startY, nedjeljaWidth, 8, 'NEDJELJA', { 
+                fontSize: 9, fontStyle: 'bold', align: 'center', fillColor: [176, 196, 222] 
+            });
+            
+            // NEDJELJA sub-headers
+            drawCell(currentX, startY + 8, colWidths.nedjeljaRucak, 8, ['prijava', 'RUČAK'], { 
+                fontSize: 7, fontStyle: 'bold', align: 'center', fillColor: [176, 196, 222], multiline: true, textColor: [255, 0, 0] 
+            });
+            currentX += colWidths.nedjeljaRucak;
+            
+            drawCell(currentX, startY + 8, colWidths.nedjeljaVecera, 8, ['prijava', 'VEČERA'], { 
+                fontSize: 7, fontStyle: 'bold', align: 'center', fillColor: [176, 196, 222], multiline: true, textColor: [255, 0, 0] 
+            });
+
+            // Draw data rows
+            allPeople.forEach((person, index) => {
+                const fullName = `${person.prezime} ${person.ime}`;
+                const data = dataMap[fullName] || {
+                    nedostaje: '',
+                    ostaje: '',
                     petakOdlazak: ':',
                     petakRucak: '',
                     petakVecera: '',
@@ -621,122 +763,112 @@
                     nedjeljaVecera: ''
                 };
 
-                return [
-                    (index + 1).toString(),
-                    prezime,
-                    ime,
-                    data.ostajem,
-                    data.idemPrije,
-                    data.petakOdlazak,
-                    data.petakRucak,
-                    data.petakVecera,
-                    data.subotaOdlazak,
-                    data.subotaRucak,
-                    data.subotaVecera,
-                    data.nedjeljaRucak,
-                    data.nedjeljaVecera
-                ];
+                const rowY = startY + 16 + (index * rowHeight);
+                currentX = startX;
+
+                // Row data
+                drawCell(currentX, rowY, colWidths.rbr, rowHeight, person.num + '.', { align: 'center', fontSize: 9 });
+                currentX += colWidths.rbr;
+                
+                drawCell(currentX, rowY, colWidths.prezime, rowHeight, person.prezime, { fontSize: 9 });
+                currentX += colWidths.prezime;
+                
+                drawCell(currentX, rowY, colWidths.ime, rowHeight, person.ime, { fontSize: 9 });
+                currentX += colWidths.ime;
+                
+                drawCell(currentX, rowY, colWidths.nedostaje, rowHeight, data.nedostaje, { align: 'center', fontSize: 9 });
+                currentX += colWidths.nedostaje;
+                
+                drawCell(currentX, rowY, colWidths.ostaje, rowHeight, data.ostaje, { align: 'center', fontSize: 9 });
+                currentX += colWidths.ostaje;
+                
+                drawCell(currentX, rowY, colWidths.petakVrijeme, rowHeight, data.petakOdlazak, { align: 'center', fontSize: 9 });
+                currentX += colWidths.petakVrijeme;
+                
+                drawCell(currentX, rowY, colWidths.petakRucak, rowHeight, data.petakRucak, { align: 'center', fontSize: 9 });
+                currentX += colWidths.petakRucak;
+                
+                drawCell(currentX, rowY, colWidths.petakVecera, rowHeight, data.petakVecera, { align: 'center', fontSize: 9 });
+                currentX += colWidths.petakVecera;
+                
+                drawCell(currentX, rowY, colWidths.subotaVrijeme, rowHeight, data.subotaOdlazak, { align: 'center', fontSize: 9 });
+                currentX += colWidths.subotaVrijeme;
+                
+                drawCell(currentX, rowY, colWidths.subotaRucak, rowHeight, data.subotaRucak, { align: 'center', fontSize: 9 });
+                currentX += colWidths.subotaRucak;
+                
+                drawCell(currentX, rowY, colWidths.subotaVecera, rowHeight, data.subotaVecera, { align: 'center', fontSize: 9 });
+                currentX += colWidths.subotaVecera;
+                
+                drawCell(currentX, rowY, colWidths.nedjeljaRucak, rowHeight, data.nedjeljaRucak, { align: 'center', fontSize: 9 });
+                currentX += colWidths.nedjeljaRucak;
+                
+                drawCell(currentX, rowY, colWidths.nedjeljaVecera, rowHeight, data.nedjeljaVecera, { align: 'center', fontSize: 9 });
             });
 
-            // Add UKUPNO row
-            const ukupnoRow = ['', '', 'UKUPNO:', '', '', '', '', '', '', '', '', '', ''];
-
-            tableBody.push(ukupnoRow);
-
-            // Create table
-            doc.autoTable({
-                startY: 28,
-                head: [[
-                    { content: 'R.BR.', rowSpan: 2 },
-                    { content: 'PREZIME', rowSpan: 2 },
-                    { content: 'IME', rowSpan: 2 },
-                    { content: 'OSTAJE\n- napsati razlog', rowSpan: 2 },
-                    { content: 'OSTAJE\ncijeli vikend', rowSpan: 2 },
-                    { content: 'PETAK', colSpan: 3 },
-                    { content: 'SUBOTA', colSpan: 3 },
-                    { content: 'NEDJELJA', colSpan: 2 }
-                ], [
-                    '', '', '', '', '',
-                    'vrijeme\nodlaska\n(hh:mm)',
-                    'prijava\nRUČAK',
-                    'prijava\nVEČERA',
-                    'vrijeme\nodlaska\n(hh:mm)',
-                    'prijava\nRUČAK',
-                    'prijava\nVEČERA',
-                    'prijava\nRUČAK',
-                    'prijava\nVEČERA'
-                ]],
-                body: tableBody,
-                theme: 'grid',
-                styles: {
-                    font: 'helvetica',
-                    fontSize: 8,
-                    cellPadding: 1,
-                    lineColor: [0, 0, 0],
-                    lineWidth: 0.3
-                },
-                headStyles: {
-                    fillColor: [255, 255, 255],
-                    textColor: [0, 0, 0],
-                    fontStyle: 'bold',
-                    halign: 'center',
-                    valign: 'middle',
-                    fontSize: 7
-                },
-                columnStyles: {
-                    0: { cellWidth: 10, halign: 'center' },  // R.BR.
-                    1: { cellWidth: 22 },  // PREZIME
-                    2: { cellWidth: 18 },  // IME
-                    3: { cellWidth: 15, halign: 'center' },  // OSTAJE - razlog
-                    4: { cellWidth: 15, halign: 'center' },  // OSTAJE cijeli
-                    5: { cellWidth: 16, halign: 'center', fillColor: [173, 216, 230] },  // Petak vrijeme
-                    6: { cellWidth: 16, halign: 'center', fillColor: [173, 216, 230] },  // Petak ručak
-                    7: { cellWidth: 16, halign: 'center', fillColor: [173, 216, 230] },  // Petak večera
-                    8: { cellWidth: 16, halign: 'center', fillColor: [135, 206, 250] },  // Subota vrijeme
-                    9: { cellWidth: 16, halign: 'center', fillColor: [135, 206, 250] },  // Subota ručak
-                    10: { cellWidth: 16, halign: 'center', fillColor: [135, 206, 250] }, // Subota večera
-                    11: { cellWidth: 16, halign: 'center', fillColor: [176, 196, 222] }, // Nedjelja ručak
-                    12: { cellWidth: 16, halign: 'center', fillColor: [176, 196, 222] }  // Nedjelja večera
-                },
-                didParseCell: function(data) {
-                    // Style header rows
-                    if (data.row.section === 'head') {
-                        if (data.row.index === 0) {
-                            // First header row with merged cells
-                            if (data.column.index >= 5 && data.column.index <= 7) {
-                                data.cell.styles.fillColor = [173, 216, 230]; // Light blue for PETAK
-                            } else if (data.column.index >= 8 && data.column.index <= 10) {
-                                data.cell.styles.fillColor = [135, 206, 250]; // Medium blue for SUBOTA
-                            } else if (data.column.index >= 11) {
-                                data.cell.styles.fillColor = [176, 196, 222]; // Light steel blue for NEDJELJA
-                            }
-                        }
-                    }
-                    
-                    // Style UKUPNO row
-                    if (data.row.index === tableBody.length - 1) {
-                        data.cell.styles.fontStyle = 'bold';
-                    }
-                },
-                margin: { left: 10, right: 10 }
-            });
-
-            // Add comments at the bottom
-            const finalY = doc.lastAutoTable.finalY + 5;
-            doc.setFontSize(8);
-            doc.setTextColor(0, 0, 255);
+            // Draw UKUPNO row
+            const ukupnoY = startY + 16 + (22 * rowHeight);
+            currentX = startX;
             
-            doc.text('COMMENTS:', 15, finalY);
-            doc.text('data in PRIJE PETKA - "DA" or "-"', 15, finalY + 5);
-            doc.text('data in Cijeli Vikend - "DA" or "-"', 15, finalY + 10);
-            doc.text('data in Petak Odlazak - TIME', 70, finalY + 5);
-            doc.text('data in Petak RUČAK - "DA" or "-"', 70, finalY + 10);
-            doc.text('data in Petak VEČERA - "DA" or "-"', 140, finalY + 5);
-            doc.text('data in SUBOTA Odlazak - TIME', 140, finalY + 10);
-            doc.text('data in Subota RUČAK - "DA" or "-"', 210, finalY + 5);
-            doc.text('data in Subota VEČERA - "DA" or "-"', 210, finalY + 10);
-            doc.text('data in NEDJELJA RUČAK - "DA" or "-"', 250, finalY + 5);
-            doc.text('data in NEDJELJA VEČERA - "DA" or "-"', 250, finalY + 10);
+            drawCell(currentX, ukupnoY, colWidths.rbr, rowHeight, '', { fontSize: 9 });
+            currentX += colWidths.rbr;
+            
+            drawCell(currentX, ukupnoY, colWidths.prezime, rowHeight, '', { fontSize: 9 });
+            currentX += colWidths.prezime;
+            
+            drawCell(currentX, ukupnoY, colWidths.ime, rowHeight, 'UKUPNO:', { fontSize: 9, fontStyle: 'bold' });
+            currentX += colWidths.ime;
+            
+            // Calculate totals for each column
+            const totals = {
+                nedostaje: 0,
+                ostaje: 0,
+                petakRucak: 0,
+                petakVecera: 0,
+                subotaRucak: 0,
+                subotaVecera: 0,
+                nedjeljaRucak: 0,
+                nedjeljaVecera: 0
+            };
+
+            weekRows.forEach(row => {
+                if (row[5] === 'DA') totals.ostaje++;
+                if (row[7] === 'DA') totals.petakRucak++;
+                if (row[8] === 'DA') totals.petakVecera++;
+                if (row[10] === 'DA') totals.subotaRucak++;
+                if (row[11] === 'DA') totals.subotaVecera++;
+                if (row[12] === 'DA') totals.nedjeljaRucak++;
+                if (row[13] === 'DA') totals.nedjeljaVecera++;
+            });
+
+            drawCell(currentX, ukupnoY, colWidths.nedostaje, rowHeight, '', { align: 'center', fontSize: 9 });
+            currentX += colWidths.nedostaje;
+            
+            drawCell(currentX, ukupnoY, colWidths.ostaje, rowHeight, totals.ostaje || '', { align: 'center', fontSize: 9, fontStyle: 'bold' });
+            currentX += colWidths.ostaje;
+            
+            drawCell(currentX, ukupnoY, colWidths.petakVrijeme, rowHeight, '', { align: 'center', fontSize: 9 });
+            currentX += colWidths.petakVrijeme;
+            
+            drawCell(currentX, ukupnoY, colWidths.petakRucak, rowHeight, totals.petakRucak || '', { align: 'center', fontSize: 9, fontStyle: 'bold' });
+            currentX += colWidths.petakRucak;
+            
+            drawCell(currentX, ukupnoY, colWidths.petakVecera, rowHeight, totals.petakVecera || '', { align: 'center', fontSize: 9, fontStyle: 'bold' });
+            currentX += colWidths.petakVecera;
+            
+            drawCell(currentX, ukupnoY, colWidths.subotaVrijeme, rowHeight, '', { align: 'center', fontSize: 9 });
+            currentX += colWidths.subotaVrijeme;
+            
+            drawCell(currentX, ukupnoY, colWidths.subotaRucak, rowHeight, totals.subotaRucak || '', { align: 'center', fontSize: 9, fontStyle: 'bold' });
+            currentX += colWidths.subotaRucak;
+            
+            drawCell(currentX, ukupnoY, colWidths.subotaVecera, rowHeight, totals.subotaVecera || '', { align: 'center', fontSize: 9, fontStyle: 'bold' });
+            currentX += colWidths.subotaVecera;
+            
+            drawCell(currentX, ukupnoY, colWidths.nedjeljaRucak, rowHeight, totals.nedjeljaRucak || '', { align: 'center', fontSize: 9, fontStyle: 'bold' });
+            currentX += colWidths.nedjeljaRucak;
+            
+            drawCell(currentX, ukupnoY, colWidths.nedjeljaVecera, rowHeight, totals.nedjeljaVecera || '', { align: 'center', fontSize: 9, fontStyle: 'bold' });
 
             // Save PDF
             doc.save(`odlazak-kuci-${currentWeek}.pdf`);
