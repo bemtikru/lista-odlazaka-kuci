@@ -50,6 +50,8 @@
             justify-content: center;
             gap: 12px;
             width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
             padding: 14px 24px;
             background: white;
             border: 2px solid #e0e0e0;
@@ -59,6 +61,11 @@
             color: #333;
             cursor: pointer;
             transition: all 0.3s ease;
+        }
+
+        /* Override for Google's rendered button on mobile */
+        #googleLoginBtn > div {
+            margin: 0 auto;
         }
 
         .google-btn:hover {
@@ -402,7 +409,7 @@
 
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script>
-        // Configuration - REPLACE THESE VALUES
+        // Configuration
         const CONFIG = {
             GOOGLE_CLIENT_ID: '406542478341-9s7qehkmblkr3n0h1r78a0gq9dumv473.apps.googleusercontent.com',
             SPREADSHEET_ID: '1KMcCZZ9BnyFerFsolGxOu6F2h7Gt3fC8KWK-sxDBN4k',
@@ -411,17 +418,49 @@
 
         let userToken = null;
         let userInfo = null;
+        let tokenClient = null;
+
+        // Check if mobile device
+        function isMobile() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
 
         // Initialize Google Sign-In
         function initializeGoogleSignIn() {
-            google.accounts.id.initialize({
-                client_id: CONFIG.GOOGLE_CLIENT_ID,
-                callback: handleCredentialResponse
-            });
+            // For mobile, use redirect flow with button rendering
+            if (isMobile()) {
+                google.accounts.id.initialize({
+                    client_id: CONFIG.GOOGLE_CLIENT_ID,
+                    callback: handleCredentialResponse,
+                    ux_mode: 'redirect',
+                    redirect_uri: window.location.origin + window.location.pathname
+                });
 
-            document.getElementById('googleLoginBtn').addEventListener('click', () => {
+                // Render the button instead of using custom button
+                google.accounts.id.renderButton(
+                    document.getElementById('googleLoginBtn'),
+                    { 
+                        theme: 'outline', 
+                        size: 'large',
+                        width: 300,
+                        text: 'signin_with',
+                        locale: 'hr'
+                    }
+                );
+
+                // Also try automatic sign-in
                 google.accounts.id.prompt();
-            });
+            } else {
+                // Desktop: use popup flow
+                google.accounts.id.initialize({
+                    client_id: CONFIG.GOOGLE_CLIENT_ID,
+                    callback: handleCredentialResponse
+                });
+
+                document.getElementById('googleLoginBtn').addEventListener('click', () => {
+                    google.accounts.id.prompt();
+                });
+            }
         }
 
         // Handle Google Sign-In response

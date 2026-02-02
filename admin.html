@@ -260,7 +260,7 @@
 
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script>
-        // Configuration - REPLACE THESE VALUES
+        // Configuration
         const CONFIG = {
             GOOGLE_CLIENT_ID: '406542478341-9s7qehkmblkr3n0h1r78a0gq9dumv473.apps.googleusercontent.com',
             SPREADSHEET_ID: '1KMcCZZ9BnyFerFsolGxOu6F2h7Gt3fC8KWK-sxDBN4k',
@@ -270,16 +270,46 @@
         let userToken = null;
         let userInfo = null;
 
+        // Check if mobile device
+        function isMobile() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+
         // Initialize Google Sign-In
         function initializeGoogleSignIn() {
-            google.accounts.id.initialize({
-                client_id: CONFIG.GOOGLE_CLIENT_ID,
-                callback: handleCredentialResponse
-            });
+            // For mobile, use redirect flow
+            if (isMobile()) {
+                google.accounts.id.initialize({
+                    client_id: CONFIG.GOOGLE_CLIENT_ID,
+                    callback: handleCredentialResponse,
+                    ux_mode: 'redirect',
+                    redirect_uri: window.location.origin + window.location.pathname
+                });
 
-            document.getElementById('googleLoginBtn').addEventListener('click', () => {
+                // Render the button
+                google.accounts.id.renderButton(
+                    document.getElementById('googleLoginBtn'),
+                    { 
+                        theme: 'filled_blue', 
+                        size: 'large',
+                        text: 'signin_with',
+                        locale: 'hr'
+                    }
+                );
+
+                // Also try automatic sign-in
                 google.accounts.id.prompt();
-            });
+            } else {
+                // Desktop: use popup flow
+                google.accounts.id.initialize({
+                    client_id: CONFIG.GOOGLE_CLIENT_ID,
+                    callback: handleCredentialResponse
+                });
+
+                document.getElementById('googleLoginBtn').addEventListener('click', () => {
+                    google.accounts.id.prompt();
+                });
+            }
         }
 
         // Handle Google Sign-In response
