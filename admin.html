@@ -195,6 +195,7 @@
                     <span class="week-display" id="weekDisplay"></span>
                     <button class="refresh-btn" id="refreshBtn">🔄 Osvježi podatke</button>
                     <button class="export-btn" id="exportBtn">📥 Izvezi u Excel</button>
+                    <button class="export-btn" id="generatePdfBtn">📄 Generiraj PDF Izvještaj</button>
                     <button class="refresh-btn" id="logoutBtn">Odjavi se</button>
                 </div>
             </div>
@@ -259,6 +260,8 @@
     </div>
 
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     <script>
         // Configuration
         const CONFIG = {
@@ -512,6 +515,232 @@
                 alert('Greška pri izvozу podataka');
             }
         });
+
+        // Generate PDF Report Button
+        document.getElementById('generatePdfBtn').addEventListener('click', async () => {
+            try {
+                // Load data first
+                const response = await fetch(
+                    `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SPREADSHEET_ID}/values/Sheet1!A2:N?key=${CONFIG.API_KEY}`
+                );
+
+                if (!response.ok) {
+                    throw new Error('Failed to load data');
+                }
+
+                const data = await response.json();
+                const rows = data.values || [];
+                
+                // Filter for current week
+                const currentWeek = getCurrentWeek();
+                const weekRows = rows.filter(row => row[1] === currentWeek);
+
+                if (weekRows.length === 0) {
+                    alert('Nema podataka za trenutni tjedan');
+                    return;
+                }
+
+                // Generate PDF
+                generatePDFReport(weekRows, currentWeek);
+
+            } catch (error) {
+                console.error('Error generating PDF:', error);
+                alert('Greška pri generiranju PDF-a');
+            }
+        });
+
+        // Generate PDF Report with exact formatting
+        function generatePDFReport(weekRows, currentWeek) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('landscape', 'mm', 'a4');
+
+            // All 22 people in order
+            const allPeople = [
+                "Božičević Josip",
+                "Božičević Maks Anton",
+                "Bernardić Niko",
+                "Cetinić Petar",
+                "Ćalić Lucas",
+                "Dasović Mislav",
+                "Ferara Patrik",
+                "Herceg Mihael",
+                "Išek Dominik",
+                "Jerčić Duje",
+                "Kukuruzović Slavko",
+                "Malnar Luka",
+                "Maračić Luka",
+                "Mičurin Marko",
+                "Milošević Aron",
+                "Rendulić Noa Izak",
+                "Sabljak Marko",
+                "Štemberger Fran",
+                "Tokić Gabriel",
+                "Tomljanović Petar",
+                "Turk Niko",
+                "Žic David"
+            ];
+
+            // Create data map for quick lookup
+            const dataMap = {};
+            weekRows.forEach(row => {
+                const name = row[3]; // ime_prezime column
+                dataMap[name] = {
+                    ostajem: row[5] || '-',  // ostajem cijeli vikend
+                    idemPrije: row[4] || '-', // idem prije petka
+                    petakOdlazak: row[6] || '-',
+                    petakRucak: row[7] || '-',
+                    petakVecera: row[8] || '-',
+                    subotaOdlazak: row[9] || '-',
+                    subotaRucak: row[10] || '-',
+                    subotaVecera: row[11] || '-',
+                    nedjeljaRucak: row[12] || '-',
+                    nedjeljaVecera: row[13] || '-'
+                };
+            });
+
+            // Title
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'bold');
+            doc.text('7. ODGOJNA SKUPINA', 148, 15, { align: 'center' });
+            doc.text(`ODLAZAK KUĆI _____________`, 148, 21, { align: 'center' });
+
+            // Table body data
+            const tableBody = allPeople.map((person, index) => {
+                const [prezime, ...imeArr] = person.split(' ');
+                const ime = imeArr.join(' ');
+                const data = dataMap[person] || {
+                    ostajem: '',
+                    idemPrije: '',
+                    petakOdlazak: ':',
+                    petakRucak: '',
+                    petakVecera: '',
+                    subotaOdlazak: ':',
+                    subotaRucak: '',
+                    subotaVecera: '',
+                    nedjeljaRucak: '',
+                    nedjeljaVecera: ''
+                };
+
+                return [
+                    (index + 1).toString(),
+                    prezime,
+                    ime,
+                    data.ostajem,
+                    data.idemPrije,
+                    data.petakOdlazak,
+                    data.petakRucak,
+                    data.petakVecera,
+                    data.subotaOdlazak,
+                    data.subotaRucak,
+                    data.subotaVecera,
+                    data.nedjeljaRucak,
+                    data.nedjeljaVecera
+                ];
+            });
+
+            // Add UKUPNO row
+            const ukupnoRow = ['', '', 'UKUPNO:', '', '', '', '', '', '', '', '', '', ''];
+
+            tableBody.push(ukupnoRow);
+
+            // Create table
+            doc.autoTable({
+                startY: 28,
+                head: [[
+                    { content: 'R.BR.', rowSpan: 2 },
+                    { content: 'PREZIME', rowSpan: 2 },
+                    { content: 'IME', rowSpan: 2 },
+                    { content: 'OSTAJE\n- napsati razlog', rowSpan: 2 },
+                    { content: 'OSTAJE\ncijeli vikend', rowSpan: 2 },
+                    { content: 'PETAK', colSpan: 3 },
+                    { content: 'SUBOTA', colSpan: 3 },
+                    { content: 'NEDJELJA', colSpan: 2 }
+                ], [
+                    '', '', '', '', '',
+                    'vrijeme\nodlaska\n(hh:mm)',
+                    'prijava\nRUČAK',
+                    'prijava\nVEČERA',
+                    'vrijeme\nodlaska\n(hh:mm)',
+                    'prijava\nRUČAK',
+                    'prijava\nVEČERA',
+                    'prijava\nRUČAK',
+                    'prijava\nVEČERA'
+                ]],
+                body: tableBody,
+                theme: 'grid',
+                styles: {
+                    font: 'helvetica',
+                    fontSize: 8,
+                    cellPadding: 1,
+                    lineColor: [0, 0, 0],
+                    lineWidth: 0.3
+                },
+                headStyles: {
+                    fillColor: [255, 255, 255],
+                    textColor: [0, 0, 0],
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    valign: 'middle',
+                    fontSize: 7
+                },
+                columnStyles: {
+                    0: { cellWidth: 10, halign: 'center' },  // R.BR.
+                    1: { cellWidth: 22 },  // PREZIME
+                    2: { cellWidth: 18 },  // IME
+                    3: { cellWidth: 15, halign: 'center' },  // OSTAJE - razlog
+                    4: { cellWidth: 15, halign: 'center' },  // OSTAJE cijeli
+                    5: { cellWidth: 16, halign: 'center', fillColor: [173, 216, 230] },  // Petak vrijeme
+                    6: { cellWidth: 16, halign: 'center', fillColor: [173, 216, 230] },  // Petak ručak
+                    7: { cellWidth: 16, halign: 'center', fillColor: [173, 216, 230] },  // Petak večera
+                    8: { cellWidth: 16, halign: 'center', fillColor: [135, 206, 250] },  // Subota vrijeme
+                    9: { cellWidth: 16, halign: 'center', fillColor: [135, 206, 250] },  // Subota ručak
+                    10: { cellWidth: 16, halign: 'center', fillColor: [135, 206, 250] }, // Subota večera
+                    11: { cellWidth: 16, halign: 'center', fillColor: [176, 196, 222] }, // Nedjelja ručak
+                    12: { cellWidth: 16, halign: 'center', fillColor: [176, 196, 222] }  // Nedjelja večera
+                },
+                didParseCell: function(data) {
+                    // Style header rows
+                    if (data.row.section === 'head') {
+                        if (data.row.index === 0) {
+                            // First header row with merged cells
+                            if (data.column.index >= 5 && data.column.index <= 7) {
+                                data.cell.styles.fillColor = [173, 216, 230]; // Light blue for PETAK
+                            } else if (data.column.index >= 8 && data.column.index <= 10) {
+                                data.cell.styles.fillColor = [135, 206, 250]; // Medium blue for SUBOTA
+                            } else if (data.column.index >= 11) {
+                                data.cell.styles.fillColor = [176, 196, 222]; // Light steel blue for NEDJELJA
+                            }
+                        }
+                    }
+                    
+                    // Style UKUPNO row
+                    if (data.row.index === tableBody.length - 1) {
+                        data.cell.styles.fontStyle = 'bold';
+                    }
+                },
+                margin: { left: 10, right: 10 }
+            });
+
+            // Add comments at the bottom
+            const finalY = doc.lastAutoTable.finalY + 5;
+            doc.setFontSize(8);
+            doc.setTextColor(0, 0, 255);
+            
+            doc.text('COMMENTS:', 15, finalY);
+            doc.text('data in PRIJE PETKA - "DA" or "-"', 15, finalY + 5);
+            doc.text('data in Cijeli Vikend - "DA" or "-"', 15, finalY + 10);
+            doc.text('data in Petak Odlazak - TIME', 70, finalY + 5);
+            doc.text('data in Petak RUČAK - "DA" or "-"', 70, finalY + 10);
+            doc.text('data in Petak VEČERA - "DA" or "-"', 140, finalY + 5);
+            doc.text('data in SUBOTA Odlazak - TIME', 140, finalY + 10);
+            doc.text('data in Subota RUČAK - "DA" or "-"', 210, finalY + 5);
+            doc.text('data in Subota VEČERA - "DA" or "-"', 210, finalY + 10);
+            doc.text('data in NEDJELJA RUČAK - "DA" or "-"', 250, finalY + 5);
+            doc.text('data in NEDJELJA VEČERA - "DA" or "-"', 250, finalY + 10);
+
+            // Save PDF
+            doc.save(`odlazak-kuci-${currentWeek}.pdf`);
+        }
 
         // Initialize when page loads
         window.addEventListener('load', () => {
