@@ -1,0 +1,6 @@
+# Redirects for SPA behavior
+/*    /index.html   200
+
+# Remove trailing slashes
+/index.html/  /index.html  301
+/admin.html/  /admin.html  301

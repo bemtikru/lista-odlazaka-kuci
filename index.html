@@ -439,16 +439,15 @@
 
         // Initialize Google Sign-In
         function initializeGoogleSignIn() {
-            // For mobile, use redirect flow with button rendering
-            if (isMobile()) {
-                google.accounts.id.initialize({
-                    client_id: CONFIG.GOOGLE_CLIENT_ID,
-                    callback: handleCredentialResponse,
-                    ux_mode: 'redirect',
-                    redirect_uri: window.location.origin + window.location.pathname
-                });
+            google.accounts.id.initialize({
+                client_id: CONFIG.GOOGLE_CLIENT_ID,
+                callback: handleCredentialResponse,
+                auto_select: false,
+                cancel_on_tap_outside: true
+            });
 
-                // Render the button instead of using custom button
+            if (isMobile()) {
+                // On mobile, render Google's button directly
                 google.accounts.id.renderButton(
                     document.getElementById('googleLoginBtn'),
                     { 
@@ -456,22 +455,20 @@
                         size: 'large',
                         width: 300,
                         text: 'signin_with',
-                        locale: 'hr'
+                        locale: 'hr',
+                        type: 'standard'
                     }
                 );
-
-                // Also try automatic sign-in
-                google.accounts.id.prompt();
             } else {
-                // Desktop: use popup flow
-                google.accounts.id.initialize({
-                    client_id: CONFIG.GOOGLE_CLIENT_ID,
-                    callback: handleCredentialResponse
-                });
-
+                // On desktop, use custom button with prompt
                 document.getElementById('googleLoginBtn').addEventListener('click', () => {
                     google.accounts.id.prompt();
                 });
+            }
+
+            // Try One Tap on mobile
+            if (isMobile()) {
+                google.accounts.id.prompt();
             }
         }
 
