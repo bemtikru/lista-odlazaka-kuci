@@ -63,6 +63,18 @@
             transition: all 0.3s ease;
         }
 
+        /* Hide custom button content on mobile, show only Google's rendered button */
+        @media (max-width: 768px) {
+            .google-btn {
+                padding: 0;
+                border: none;
+                background: transparent;
+            }
+            .google-icon {
+                display: none;
+            }
+        }
+
         /* Override for Google's rendered button on mobile */
         #googleLoginBtn > div {
             margin: 0 auto;
