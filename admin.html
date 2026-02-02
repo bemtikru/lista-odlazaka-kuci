@@ -280,6 +280,15 @@
 
         // Initialize Google Sign-In
         function initializeGoogleSignIn() {
+            console.log('Initializing Google Sign-In...');
+            console.log('google object:', typeof google);
+            
+            if (typeof google === 'undefined' || !google.accounts) {
+                console.error('Google Sign-In library not loaded!');
+                alert('Google Sign-In nije učitan. Osvježite stranicu.');
+                return;
+            }
+            
             google.accounts.id.initialize({
                 client_id: CONFIG.GOOGLE_CLIENT_ID,
                 callback: handleCredentialResponse,
@@ -287,10 +296,14 @@
                 cancel_on_tap_outside: true
             });
 
+            const loginBtn = document.getElementById('googleLoginBtn');
+            console.log('Login button:', loginBtn);
+
             if (isMobile()) {
                 // On mobile, render Google's button directly
+                console.log('Mobile detected, rendering Google button');
                 google.accounts.id.renderButton(
-                    document.getElementById('googleLoginBtn'),
+                    loginBtn,
                     { 
                         theme: 'filled_blue', 
                         size: 'large',
@@ -301,7 +314,9 @@
                 );
             } else {
                 // On desktop, use custom button with prompt
-                document.getElementById('googleLoginBtn').addEventListener('click', () => {
+                console.log('Desktop detected, adding click handler');
+                loginBtn.addEventListener('click', () => {
+                    console.log('Login button clicked!');
                     google.accounts.id.prompt();
                 });
             }
@@ -1210,7 +1225,7 @@
             drawCell(currentX, ukupnoY, colWidths.nedjeljaVecera, rowHeight, totals.nedjeljaVecera || '', { align: 'center', fontSize: 9, fontStyle: 'bold' });
 
             // Save PDF
-            doc.save(`odlazak-kuci-${currentWeek}.pdf`);
+            doc.save('odlazak-kuci-' + currentWeek + '.pdf');
         }
 
         // Initialize when page loads
