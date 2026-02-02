@@ -99,6 +99,24 @@
             display: block;
         }
 
+        .form-title {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .form-title h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #000;
+            margin-bottom: 5px;
+        }
+
+        .form-title p {
+            font-size: 14px;
+            color: #333;
+            margin: 2px 0;
+        }
+
         .user-info {
             text-align: center;
             margin-bottom: 20px;
@@ -124,6 +142,30 @@
 
         .form-group {
             margin-bottom: 12px;
+        }
+
+        .form-section {
+            padding: 15px;
+            margin: 0 -20px 15px -20px;
+        }
+
+        .form-section.cyan {
+            background: #7FFFD4;
+        }
+
+        .form-section.purple {
+            background: #B19CD9;
+        }
+
+        .section-note {
+            background: #B19CD9;
+            padding: 12px 15px;
+            margin: 0 -20px 15px -20px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: #000;
+            line-height: 1.4;
         }
 
         .form-label {
@@ -159,18 +201,27 @@
 
         .submit-btn {
             width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 16px;
+            background: linear-gradient(135deg, #9B30FF 0%, #7B2CBF 100%);
             border: none;
-            border-radius: 25px;
+            border-radius: 10px;
             color: white;
-            font-size: 16px;
+            font-size: 20px;
             font-weight: 700;
             cursor: pointer;
             margin-top: 20px;
             text-transform: uppercase;
             letter-spacing: 1px;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .submit-btn::after {
+            content: '🚀';
+            font-size: 24px;
         }
 
         .submit-btn:hover {
@@ -260,10 +311,18 @@
                 <button class="logout-btn" id="logoutBtn">Odjavi se</button>
             </div>
 
+            <div class="form-title">
+                <h2>Lista odlazaka kući</h2>
+                <p>7.odg. skupine</p>
+                <p>U.d. Karlovac</p>
+            </div>
+
             <form id="dataForm">
-                <div class="form-group">
-                    <label class="form-label">IME I PREZIME</label>
-                    <select class="form-select" name="ime_prezime" id="imePrezime">
+                <!-- Name Section (Cyan) -->
+                <div class="form-section cyan">
+                    <div class="form-group">
+                        <label class="form-label">IME I PREZIME (OBAVEZAN UNOS)</label>
+                        <select class="form-select" name="ime_prezime" id="imePrezime">
                         <option value="-">-</option>
                         <option value="Božičević Josip">Božičević Josip</option>
                         <option value="Božičević Maks Anton">Božičević Maks Anton</option>
@@ -289,25 +348,36 @@
                         <option value="Žic David">Žic David</option>
                     </select>
                 </div>
-
-                <div class="form-group">
-                    <label class="form-label">IDEM PRIJE PETKA</label>
-                    <select class="form-select" name="idem_prije_petka">
-                        <option value="-">-</option>
-                        <option value="DA">DA</option>
-                    </select>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">OSTAJEM CIJELI VIKEND</label>
-                    <select class="form-select" name="ostajem_cijeli_vikend">
-                        <option value="-">-</option>
-                        <option value="DA">DA</option>
-                    </select>
+                <!-- Note Section -->
+                <div class="section-note">
+                    *OSTAVI "-" AKO SE STAVKA NE ODNOSI NA TEBE, NA STAVKE ISPOD
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">PETAK VRIJEME ODLASKA</label>
+                <!-- Before Friday Section (Cyan) -->
+                <div class="form-section cyan">
+                    <div class="form-group">
+                        <label class="form-label">IDEM PRIJE PETKA</label>
+                        <select class="form-select" name="idem_prije_petka">
+                            <option value="-">-</option>
+                            <option value="DA">DA</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">OSTAJEM CIJELI VIKEND</label>
+                        <select class="form-select" name="ostajem_cijeli_vikend">
+                            <option value="-">-</option>
+                            <option value="DA">DA</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Friday Section (Purple) -->
+                <div class="form-section purple">
+                    <div class="form-group">
+                        <label class="form-label">PETAK VRIJEME ODLASKA</label>
                     <select class="form-select" name="petak_vrijeme_odlaska">
                         <option value="-">-</option>
                         <option value="5:00">5:00</option>
@@ -340,16 +410,19 @@
                     </select>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">PETAK VEČERA</label>
-                    <select class="form-select" name="petak_vecera">
-                        <option value="-">-</option>
-                        <option value="DA">DA</option>
-                    </select>
+                    <div class="form-group">
+                        <label class="form-label">PETAK VEČERA</label>
+                        <select class="form-select" name="petak_vecera">
+                            <option value="-">-</option>
+                            <option value="DA">DA</option>
+                        </select>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">SUBOTA VRIJEME ODLASKA</label>
+                <!-- Saturday Section (Cyan) -->
+                <div class="form-section cyan">
+                    <div class="form-group">
+                        <label class="form-label">SUBOTA VRIJEME ODLASKA</label>
                     <select class="form-select" name="subota_vrijeme_odlaska">
                         <option value="-">-</option>
                         <option value="5:00">5:00</option>
@@ -382,28 +455,32 @@
                     </select>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">SUBOTA VEČERA</label>
-                    <select class="form-select" name="subota_vecera">
-                        <option value="-">-</option>
-                        <option value="DA">DA</option>
-                    </select>
+                    <div class="form-group">
+                        <label class="form-label">SUBOTA VEČERA</label>
+                        <select class="form-select" name="subota_vecera">
+                            <option value="-">-</option>
+                            <option value="DA">DA</option>
+                        </select>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">NEDJELJA RUČAK</label>
+                <!-- Sunday Section (Purple) -->
+                <div class="form-section purple">
+                    <div class="form-group">
+                        <label class="form-label">NEDJELJA RUČAK</label>
                     <select class="form-select" name="nedjelja_rucak">
                         <option value="-">-</option>
                         <option value="DA">DA</option>
                     </select>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">NEDJELJA VEČERA</label>
-                    <select class="form-select" name="nedjelja_vecera">
-                        <option value="-">-</option>
-                        <option value="DA">DA</option>
-                    </select>
+                    <div class="form-group">
+                        <label class="form-label">NEDJELJA VEČERA</label>
+                        <select class="form-select" name="nedjelja_vecera">
+                            <option value="-">-</option>
+                            <option value="DA">DA</option>
+                        </select>
+                    </div>
                 </div>
 
                 <button type="submit" class="submit-btn" id="submitBtn">Pošalji</button>
