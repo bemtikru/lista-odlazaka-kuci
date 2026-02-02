@@ -5,24 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Lista odlazaka kući</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
+        .container { max-width: 1400px; margin: 0 auto; }
         .header {
             background: white;
             padding: 20px 30px;
@@ -30,26 +20,9 @@
             margin-bottom: 20px;
             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
         }
-
-        .header h1 {
-            font-size: 28px;
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        .header-controls {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .week-display {
-            font-size: 16px;
-            color: #666;
-            font-weight: 600;
-        }
-
+        .header h1 { font-size: 28px; color: #333; margin-bottom: 10px; }
+        .header-controls { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
+        .week-display { font-size: 16px; color: #666; font-weight: 600; }
         .refresh-btn, .export-btn, .login-btn {
             padding: 10px 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -61,24 +34,16 @@
             font-weight: 600;
             transition: transform 0.2s ease;
         }
-
-        .refresh-btn:hover, .export-btn:hover, .login-btn:hover {
-            transform: translateY(-2px);
-        }
-
+        .refresh-btn:hover, .export-btn:hover, .login-btn:hover { transform: translateY(-2px); }
         .login-section {
             background: white;
             padding: 40px;
             border-radius: 15px;
             text-align: center;
             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            margin: 100px auto;
         }
-
-        .login-section h2 {
-            margin-bottom: 20px;
-            color: #333;
-        }
-
         .data-container {
             background: white;
             padding: 20px;
@@ -86,149 +51,44 @@
             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
             overflow-x: auto;
         }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 1200px;
-        }
-
-        thead {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        th {
-            padding: 15px 10px;
-            text-align: left;
-            font-weight: 600;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        td {
-            padding: 12px 10px;
-            border-bottom: 1px solid #e0e0e0;
-            font-size: 14px;
-            color: #333;
-        }
-
-        tbody tr:hover {
-            background: #f5f5f5;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-            font-size: 16px;
-        }
-
-        .no-data {
-            text-align: center;
-            padding: 40px;
-            color: #999;
-            font-size: 16px;
-        }
-
-        .summary-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .summary-card {
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .summary-card h3 {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .summary-card .number {
-            font-size: 32px;
-            font-weight: 700;
-            color: #667eea;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        @media (max-width: 768px) {
-            .header-controls {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .refresh-btn, .export-btn {
-                width: 100%;
-            }
-        }
+        table { width: 100%; border-collapse: collapse; min-width: 1200px; }
+        thead { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        th { padding: 15px 10px; text-align: left; font-size: 13px; text-transform: uppercase; }
+        td { padding: 12px 10px; border-bottom: 1px solid #e0e0e0; font-size: 14px; color: #333; }
+        .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .summary-card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1); }
+        .summary-card .number { font-size: 28px; font-weight: 700; color: #667eea; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Login Section -->
         <div class="login-section" id="loginSection">
             <h2>Admin Prijava</h2>
-            <p style="margin-bottom: 20px; color: #666;">Prijavite se s Google računom kako biste pristupili podacima</p>
-            <button class="login-btn" id="googleLoginBtn">
-                Prijavi se s Google računom
-            </button>
+            <p style="margin: 20px 0; color: #666;">Prijavite se s Google računom kako biste pristupili podacima</p>
+            <div id="googleLoginBtn"></div>
         </div>
 
-        <!-- Admin Dashboard -->
         <div id="adminDashboard" class="hidden">
             <div class="header">
                 <h1>Lista odlazaka kući - Admin</h1>
                 <div class="header-controls">
                     <span class="week-display" id="weekDisplay"></span>
-                    <button class="refresh-btn" id="refreshBtn">🔄 Osvježi podatke</button>
-                    <button class="export-btn" id="exportBtn">📥 Izvezi u Excel</button>
-                    <button class="export-btn" id="generatePdfBtn">📄 Generiraj PDF Izvještaj</button>
-                    <button class="refresh-btn" id="logoutBtn">Odjavi se</button>
+                    <button class="refresh-btn" id="refreshBtn">🔄 Osvježi</button>
+                    <button class="export-btn" id="exportBtn">📥 CSV</button>
+                    <button class="export-btn" id="generatePdfBtn">📄 PDF Izvještaj</button>
+                    <button class="refresh-btn" style="background: #e53e3e;" id="logoutBtn">Odjava</button>
                 </div>
             </div>
 
             <div class="summary-cards" id="summaryCards">
-                <div class="summary-card">
-                    <h3>Ukupno prijava</h3>
-                    <div class="number" id="totalSubmissions">0</div>
-                </div>
-                <div class="summary-card">
-                    <h3>Ručak Petak</h3>
-                    <div class="number" id="petakRucak">0</div>
-                </div>
-                <div class="summary-card">
-                    <h3>Večera Petak</h3>
-                    <div class="number" id="petakVecera">0</div>
-                </div>
-                <div class="summary-card">
-                    <h3>Ručak Subota</h3>
-                    <div class="number" id="subotaRucak">0</div>
-                </div>
-                <div class="summary-card">
-                    <h3>Večera Subota</h3>
-                    <div class="number" id="subotaVecera">0</div>
-                </div>
-                <div class="summary-card">
-                    <h3>Ručak Nedjelja</h3>
-                    <div class="number" id="nedjeljaRucak">0</div>
-                </div>
-                <div class="summary-card">
-                    <h3>Večera Nedjelja</h3>
-                    <div class="number" id="nedjeljaVecera">0</div>
-                </div>
+                <div class="summary-card"><h3>Ukupno</h3><div class="number" id="totalSubmissions">0</div></div>
+                <div class="summary-card"><h3>P-Ručak</h3><div class="number" id="petakRucak">0</div></div>
+                <div class="summary-card"><h3>P-Večera</h3><div class="number" id="petakVecera">0</div></div>
+                <div class="summary-card"><h3>S-Ručak</h3><div class="number" id="subotaRucak">0</div></div>
+                <div class="summary-card"><h3>S-Večera</h3><div class="number" id="subotaVecera">0</div></div>
+                <div class="summary-card"><h3>N-Ručak</h3><div class="number" id="nedjeljaRucak">0</div></div>
+                <div class="summary-card"><h3>N-Večera</h3><div class="number" id="nedjeljaVecera">0</div></div>
             </div>
 
             <div class="data-container">
@@ -237,23 +97,11 @@
                 <table id="dataTable" class="hidden">
                     <thead>
                         <tr>
-                            <th>Vrijeme</th>
-                            <th>Email</th>
-                            <th>Ime i Prezime</th>
-                            <th>Prije Petka</th>
-                            <th>Cijeli Vikend</th>
-                            <th>Petak Odlazak</th>
-                            <th>Petak Ručak</th>
-                            <th>Petak Večera</th>
-                            <th>Subota Odlazak</th>
-                            <th>Subota Ručak</th>
-                            <th>Subota Večera</th>
-                            <th>Nedjelja Ručak</th>
-                            <th>Nedjelja Večera</th>
+                            <th>Vrijeme</th><th>Email</th><th>Ime i Prezime</th><th>Prije Pet</th><th>Vikend</th>
+                            <th>P-Odl</th><th>P-Ruč</th><th>P-Več</th><th>S-Odl</th><th>S-Ruč</th><th>S-Več</th><th>N-Ruč</th><th>N-Več</th>
                         </tr>
                     </thead>
-                    <tbody id="dataTableBody">
-                    </tbody>
+                    <tbody id="dataTableBody"></tbody>
                 </table>
             </div>
         </div>
@@ -262,8 +110,8 @@
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
     <script>
-        // Configuration
         const CONFIG = {
             GOOGLE_CLIENT_ID: '406542478341-9s7qehkmblkr3n0h1r78a0gq9dumv473.apps.googleusercontent.com',
             SPREADSHEET_ID: '1KMcCZZ9BnyFerFsolGxOu6F2h7Gt3fC8KWK-sxDBN4k',
@@ -271,112 +119,32 @@
         };
 
         let userToken = null;
-        let userInfo = null;
 
-        // Check if mobile device
-        function isMobile() {
-            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        }
-
-        // Initialize Google Sign-In
-        function initializeGoogleSignIn() {
-            console.log('Initializing Google Sign-In...');
-            console.log('google object:', typeof google);
-            
-            if (typeof google === 'undefined' || !google.accounts) {
-                console.error('Google Sign-In library not loaded!');
-                alert('Google Sign-In nije učitan. Osvježite stranicu.');
-                return;
-            }
-            
-            google.accounts.id.initialize({
-                client_id: CONFIG.GOOGLE_CLIENT_ID,
-                callback: handleCredentialResponse,
-                auto_select: false,
-                cancel_on_tap_outside: true
-            });
-
-            const loginBtn = document.getElementById('googleLoginBtn');
-            console.log('Login button:', loginBtn);
-
-            if (isMobile()) {
-                // On mobile, render Google's button directly
-                console.log('Mobile detected, rendering Google button');
-                google.accounts.id.renderButton(
-                    loginBtn,
-                    { 
-                        theme: 'filled_blue', 
-                        size: 'large',
-                        text: 'signin_with',
-                        locale: 'hr',
-                        type: 'standard'
-                    }
-                );
-            } else {
-                // On desktop, use custom button with prompt
-                console.log('Desktop detected, adding click handler');
-                loginBtn.addEventListener('click', () => {
-                    console.log('Login button clicked!');
-                    google.accounts.id.prompt();
-                });
-            }
-
-            // Try One Tap on mobile
-            if (isMobile()) {
-                google.accounts.id.prompt();
-            }
-        }
-
-        // Handle Google Sign-In response
-        function handleCredentialResponse(response) {
-            const credential = response.credential;
-            const payload = parseJwt(credential);
-            
-            userInfo = {
-                email: payload.email,
-                name: payload.name,
-                picture: payload.picture
-            };
-
-            userToken = credential;
-            showAdminDashboard();
-        }
-
-        // Parse JWT token
         function parseJwt(token) {
             const base64Url = token.split('.')[1];
             const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
-                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-            }).join(''));
-            return JSON.parse(jsonPayload);
+            return JSON.parse(decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
         }
 
-        // Show admin dashboard
-        function showAdminDashboard() {
+        function handleCredentialResponse(response) {
+            userToken = response.credential;
             document.getElementById('loginSection').classList.add('hidden');
             document.getElementById('adminDashboard').classList.remove('hidden');
             updateWeekDisplay();
             loadData();
         }
 
-        // Logout
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            userToken = null;
-            userInfo = null;
-            document.getElementById('adminDashboard').classList.add('hidden');
-            document.getElementById('loginSection').classList.remove('hidden');
-        });
-
-        // Get current week
-        function getCurrentWeek() {
-            const now = new Date();
-            const year = now.getFullYear();
-            const weekNum = getWeekNumber(now);
-            return `${year}-W${weekNum}`;
+        function initializeGoogleSignIn() {
+            google.accounts.id.initialize({
+                client_id: CONFIG.GOOGLE_CLIENT_ID,
+                callback: handleCredentialResponse
+            });
+            google.accounts.id.renderButton(
+                document.getElementById("googleLoginBtn"),
+                { theme: "outline", size: "large", text: "signin_with" }
+            );
         }
 
-        // Get week number
         function getWeekNumber(date) {
             const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
             const dayNum = d.getUTCDay() || 7;
@@ -385,67 +153,47 @@
             return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
         }
 
-        // Update week display
-        function updateWeekDisplay() {
-            const week = getCurrentWeek();
-            document.getElementById('weekDisplay').textContent = `Trenutni tjedan: ${week}`;
+        function getCurrentWeek() {
+            const now = new Date();
+            return `${now.getFullYear()}-W${getWeekNumber(now)}`;
         }
 
-        // Load data from Google Sheets
+        function updateWeekDisplay() {
+            document.getElementById('weekDisplay').textContent = `Tjedan: ${getCurrentWeek()}`;
+        }
+
         async function loadData() {
-            const loadingIndicator = document.getElementById('loadingIndicator');
-            const noDataMessage = document.getElementById('noDataMessage');
-            const dataTable = document.getElementById('dataTable');
+            const loader = document.getElementById('loadingIndicator');
+            const table = document.getElementById('dataTable');
+            const noData = document.getElementById('noDataMessage');
             
-            loadingIndicator.classList.remove('hidden');
-            noDataMessage.classList.add('hidden');
-            dataTable.classList.add('hidden');
-
+            loader.classList.remove('hidden');
             try {
-                const response = await fetch(
-                    `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SPREADSHEET_ID}/values/Sheet1!A2:N?key=${CONFIG.API_KEY}`
-                );
-
-                if (!response.ok) {
-                    throw new Error('Failed to load data');
-                }
-
-                const data = await response.json();
-                const rows = data.values || [];
-                
-                // Filter for current week
+                const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SPREADSHEET_ID}/values/Sheet1!A2:N?key=${CONFIG.API_KEY}`);
+                const data = await res.json();
                 const currentWeek = getCurrentWeek();
-                const weekRows = rows.filter(row => row[1] === currentWeek);
+                const weekRows = (data.values || []).filter(row => row[1] === currentWeek);
 
-                loadingIndicator.classList.add('hidden');
-
+                loader.classList.add('hidden');
                 if (weekRows.length === 0) {
-                    noDataMessage.classList.remove('hidden');
+                    noData.classList.remove('hidden');
+                    table.classList.add('hidden');
                 } else {
-                    dataTable.classList.remove('hidden');
+                    noData.classList.add('hidden');
+                    table.classList.remove('hidden');
                     displayData(weekRows);
                     updateSummary(weekRows);
                 }
-
-            } catch (error) {
-                console.error('Error loading data:', error);
-                loadingIndicator.classList.add('hidden');
-                noDataMessage.textContent = 'Greška pri učitavanju podataka';
-                noDataMessage.classList.remove('hidden');
+            } catch (e) {
+                loader.textContent = "Greška pri učitavanju.";
             }
         }
 
-        // Display data in table
         function displayData(rows) {
             const tbody = document.getElementById('dataTableBody');
-            tbody.innerHTML = '';
-
-            rows.forEach(row => {
-                const tr = document.createElement('tr');
-                const timestamp = new Date(row[0]).toLocaleString('hr-HR');
-                
-                tr.innerHTML = `
-                    <td>${timestamp}</td>
+            tbody.innerHTML = rows.map(row => `
+                <tr>
+                    <td>${new Date(row[0]).toLocaleString('hr-HR')}</td>
                     <td>${row[2] || '-'}</td>
                     <td><strong>${row[3] || '-'}</strong></td>
                     <td>${row[4] || '-'}</td>
@@ -458,19 +206,13 @@
                     <td>${row[11] || '-'}</td>
                     <td>${row[12] || '-'}</td>
                     <td>${row[13] || '-'}</td>
-                `;
-                tbody.appendChild(tr);
-            });
+                </tr>
+            `).join('');
         }
 
-        // Update summary statistics
         function updateSummary(rows) {
+            const countDA = (idx) => rows.filter(r => r[idx] === 'DA').length;
             document.getElementById('totalSubmissions').textContent = rows.length;
-            
-            const countDA = (columnIndex) => {
-                return rows.filter(row => row[columnIndex] === 'DA').length;
-            };
-
             document.getElementById('petakRucak').textContent = countDA(7);
             document.getElementById('petakVecera').textContent = countDA(8);
             document.getElementById('subotaRucak').textContent = countDA(10);
@@ -479,766 +221,63 @@
             document.getElementById('nedjeljaVecera').textContent = countDA(13);
         }
 
-        // Refresh button
-        document.getElementById('refreshBtn').addEventListener('click', () => {
-            loadData();
-        });
-
-        // Export to Excel
-        document.getElementById('exportBtn').addEventListener('click', async () => {
-            try {
-                const response = await fetch(
-                    `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SPREADSHEET_ID}/values/Sheet1!A1:N?key=${CONFIG.API_KEY}`
-                );
-
-                if (!response.ok) {
-                    throw new Error('Failed to export data');
-                }
-
-                const data = await response.json();
-                const rows = data.values || [];
-                
-                // Filter for current week
-                const currentWeek = getCurrentWeek();
-                const weekRows = rows.filter((row, index) => {
-                    if (index === 0) return true; // Keep header
-                    return row[1] === currentWeek;
-                });
-
-                // Convert to CSV
-                const csv = weekRows.map(row => {
-                    return row.map(cell => {
-                        // Escape quotes and wrap in quotes if contains comma
-                        const escaped = String(cell || '').replace(/"/g, '""');
-                        return escaped.includes(',') ? `"${escaped}"` : escaped;
-                    }).join(',');
-                }).join('\n');
-
-                // Download
-                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement('a');
-                const url = URL.createObjectURL(blob);
-                link.setAttribute('href', url);
-                link.setAttribute('download', `lista_odlazaka_${currentWeek}.csv`);
-                link.style.visibility = 'hidden';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-
-            } catch (error) {
-                console.error('Error exporting data:', error);
-                alert('Greška pri izvozу podataka');
-            }
-        });
-
-        // Generate PDF Report Button
-        document.getElementById('generatePdfBtn').addEventListener('click', async () => {
-            try {
-                // Load data first
-                const response = await fetch(
-                    `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SPREADSHEET_ID}/values/Sheet1!A2:N?key=${CONFIG.API_KEY}`
-                );
-
-                if (!response.ok) {
-                    throw new Error('Failed to load data');
-                }
-
-                const data = await response.json();
-                const rows = data.values || [];
-                
-                // Filter for current week
-                const currentWeek = getCurrentWeek();
-                const weekRows = rows.filter(row => row && row[1] === currentWeek);
-
-                // Always generate PDF, even with no data
-                generatePDFReport(weekRows, currentWeek);
-
-            } catch (error) {
-                console.error('Error generating PDF:', error);
-                alert('Greška pri generiranju PDF-a: ' + error.message);
-            }
-        });
-
-        // Generate PDF Report with exact formatting
         function generatePDFReport(weekRows, currentWeek) {
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({
-                orientation: 'landscape',
-                unit: 'mm',
-                format: 'a4'
-            });
-
-            // All 22 people in exact order from template
+            const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+            
             const allPeople = [
-                { num: 1, prezime: "Božičević", ime: "Josip" },
-                { num: 2, prezime: "Božičević", ime: "Maks Anton" },
-                { num: 3, prezime: "Bernardić", ime: "Niko" },
-                { num: 4, prezime: "Cetinić", ime: "Petar" },
-                { num: 5, prezime: "Ćalić", ime: "Lucas" },
-                { num: 6, prezime: "Dasović", ime: "Mislav" },
-                { num: 7, prezime: "Ferara", ime: "Patrik" },
-                { num: 8, prezime: "Herceg", ime: "Mihael" },
-                { num: 9, prezime: "Išek", ime: "Dominik" },
-                { num: 10, prezime: "Jerčić", ime: "Duje" },
-                { num: 11, prezime: "Kukuruzović", ime: "Slavko" },
-                { num: 12, prezime: "Malnar", ime: "Luka" },
-                { num: 13, prezime: "Maračić", ime: "Luka" },
-                { num: 14, prezime: "Mičurin", ime: "Marko" },
-                { num: 15, prezime: "Milošević", ime: "Aron" },
-                { num: 16, prezime: "Rendulić", ime: "Noa Izak" },
-                { num: 17, prezime: "Sabljak", ime: "Marko" },
-                { num: 18, prezime: "Štemberger", ime: "Fran" },
-                { num: 19, prezime: "Tokić", ime: "Gabriel" },
-                { num: 20, prezime: "Tomljanović", ime: "Petar" },
-                { num: 21, prezime: "Turk", ime: "Niko" },
-                { num: 22, prezime: "Žic", ime: "David" }
+                { num: 1, prezime: "Božičević", ime: "Josip" }, { num: 2, prezime: "Božičević", ime: "Maks Anton" },
+                { num: 3, prezime: "Bernardić", ime: "Niko" }, { num: 4, prezime: "Cetinić", ime: "Petar" },
+                { num: 5, prezime: "Ćalić", ime: "Lucas" }, { num: 6, prezime: "Dasović", ime: "Mislav" },
+                { num: 7, prezime: "Ferara", ime: "Patrik" }, { num: 8, prezime: "Herceg", ime: "Mihael" },
+                { num: 9, prezime: "Išek", ime: "Dominik" }, { num: 10, prezime: "Jerčić", ime: "Duje" },
+                { num: 11, prezime: "Kukuruzović", ime: "Slavko" }, { num: 12, prezime: "Malnar", ime: "Luka" },
+                { num: 13, prezime: "Maračić", ime: "Luka" }, { num: 14, prezime: "Mičurin", ime: "Marko" },
+                { num: 15, prezime: "Milošević", ime: "Aron" }, { num: 16, prezime: "Rendulić", ime: "Noa Izak" },
+                { num: 17, prezime: "Sabljak", ime: "Marko" }, { num: 18, prezime: "Štemberger", ime: "Fran" },
+                { num: 19, prezime: "Tokić", ime: "Gabriel" }, { num: 20, prezime: "Tomljanović", ime: "Petar" },
+                { num: 21, prezime: "Turk", ime: "Niko" }, { num: 22, prezime: "Žic", ime: "David" }
             ];
 
-            // Create data map for quick lookup
             const dataMap = {};
-            weekRows.forEach(row => {
-                if (!row || !row[3]) return; // Skip invalid rows
-                
-                const fullName = row[3]; // ime_prezime column
-                dataMap[fullName] = {
-                    nedostaje: '',  // NEDOSTAJE column (empty for now)
-                    ostaje: (row[5] === 'DA') ? 'DA' : '',   // OSTAJE column - from "ostajem cijeli vikend"
-                    petakOdlazak: (row[6] && row[6] !== '-') ? row[6] : ':',
-                    petakRucak: (row[7] === 'DA') ? 'DA' : '',
-                    petakVecera: (row[8] === 'DA') ? 'DA' : '',
-                    subotaOdlazak: (row[9] && row[9] !== '-') ? row[9] : ':',
-                    subotaRucak: (row[10] === 'DA') ? 'DA' : '',
-                    subotaVecera: (row[11] === 'DA') ? 'DA' : '',
-                    nedjeljaRucak: (row[12] === 'DA') ? 'DA' : '',
-                    nedjeljaVecera: (row[13] === 'DA') ? 'DA' : ''
-                };
+            weekRows.forEach(row => { if(row[3]) dataMap[row[3]] = row; });
+
+            doc.setFontSize(14);
+            doc.text(`7. ODGOJNA SKUPINA - ${currentWeek}`, 148, 15, { align: 'center' });
+
+            const tableData = allPeople.map(p => {
+                const nameKey = `${p.prezime} ${p.ime}`;
+                const r = dataMap[nameKey] || [];
+                return [
+                    p.num, p.prezime, p.ime, 
+                    '', (r[5] === 'DA' ? 'DA' : ''), 
+                    r[6]||':', r[7]||'', r[8]||'', 
+                    r[9]||':', r[10]||'', r[11]||'', 
+                    r[12]||'', r[13]||''
+                ];
             });
 
-            // Set up the page
-            doc.setFont('helvetica');
-            
-            // Title - centered at top
-            doc.setFontSize(12);
-            doc.setFont('helvetica', 'bold');
-            doc.text('7. ODGOJNA SKUPINA', 148, 15, { align: 'center' });
-            doc.text('ODLAZAK KUCI ______________', 148, 22, { align: 'center' });
-
-            // Define precise column widths and positions
-            const startX = 10;
-            const startY = 35;
-            const rowHeight = 8.2;
-            
-            const colWidths = {
-                rbr: 12,        // R.BR.
-                prezime: 25,    // PREZIME
-                ime: 22,        // IME
-                nedostaje: 18,  // NEDOSTAJE
-                ostaje: 18,     // OSTAJE
-                petakVrijeme: 16,   // PETAK vrijeme
-                petakRucak: 16,     // PETAK ručak
-                petakVecera: 16,    // PETAK večera
-                subotaVrijeme: 16,  // SUBOTA vrijeme
-                subotaRucak: 16,    // SUBOTA ručak
-                subotaVecera: 16,   // SUBOTA večera
-                nedjeljaRucak: 16,  // NEDJELJA ručak
-                nedjeljaVecera: 16  // NEDJELJA večera
-            };
-
-            // Draw table borders manually for precise control
-            const drawCell = (x, y, width, height, text, options = {}) => {
-                // Draw border
-                doc.setLineWidth(0.3);
-                doc.setDrawColor(0, 0, 0);
-                doc.rect(x, y, width, height);
-                
-                // Fill background if specified
-                if (options.fillColor) {
-                    doc.setFillColor(options.fillColor[0], options.fillColor[1], options.fillColor[2]);
-                    doc.rect(x, y, width, height, 'F');
-                    doc.setDrawColor(0, 0, 0);
-                    doc.rect(x, y, width, height); // Redraw border
-                }
-                
-                // Set text properties
-                doc.setFontSize(options.fontSize || 9);
-                doc.setFont('helvetica', options.fontStyle || 'normal');
-                if (options.textColor) {
-                    doc.setTextColor(options.textColor[0], options.textColor[1], options.textColor[2]);
-                } else {
-                    doc.setTextColor(0, 0, 0);
-                }
-                
-                // Draw text
-                const align = options.align || 'left';
-                const textX = align === 'center' ? x + width / 2 : x + 2;
-                const textY = y + height / 2 + 2;
-                
-                if (options.multiline && Array.isArray(text)) {
-                    text.forEach((line, i) => {
-                        if (line) {
-                            doc.text(String(line), textX, textY + (i * 3.5) - 2, { align: align });
-                        }
-                    });
-                } else {
-                    if (text !== null && text !== undefined) {
-                        doc.text(String(text), textX, textY, { align: align });
-                    }
-                }
-                
-                // Reset text color
-                doc.setTextColor(0, 0, 0);
-            };
-
-            // Draw header row 1 (merged cells)
-            let currentX = startX;
-            
-            drawCell(currentX, startY, colWidths.rbr, 16, 'R.BR.', { 
-                fontSize: 8, fontStyle: 'bold', align: 'center', fillColor: [255, 255, 255] 
-            });
-            currentX += colWidths.rbr;
-            
-            drawCell(currentX, startY, colWidths.prezime, 16, 'PREZIME', { 
-                fontSize: 8, fontStyle: 'bold', align: 'center', fillColor: [255, 255, 255] 
-            });
-            currentX += colWidths.prezime;
-            
-            drawCell(currentX, startY, colWidths.ime, 16, 'IME', { 
-                fontSize: 8, fontStyle: 'bold', align: 'center', fillColor: [255, 255, 255] 
-            });
-            currentX += colWidths.ime;
-            
-            drawCell(currentX, startY, colWidths.nedostaje, 16, ['NEDOSTAJE'], { 
-                fontSize: 7, fontStyle: 'bold', align: 'center', fillColor: [255, 255, 255], multiline: true 
-            });
-            currentX += colWidths.nedostaje;
-            
-            drawCell(currentX, startY, colWidths.ostaje, 16, ['OSTAJE', '- napsati razlog'], { 
-                fontSize: 7, fontStyle: 'bold', align: 'center', fillColor: [255, 255, 255], multiline: true 
-            });
-            currentX += colWidths.ostaje;
-            
-            // PETAK header (light blue)
-            const petakWidth = colWidths.petakVrijeme + colWidths.petakRucak + colWidths.petakVecera;
-            drawCell(currentX, startY, petakWidth, 8, 'PETAK', { 
-                fontSize: 9, fontStyle: 'bold', align: 'center', fillColor: [173, 216, 230] 
-            });
-            
-            // PETAK sub-headers
-            drawCell(currentX, startY + 8, colWidths.petakVrijeme, 8, ['vrijeme', 'odlaska', '(hh:mm)'], { 
-                fontSize: 6, fontStyle: 'bold', align: 'center', fillColor: [173, 216, 230], multiline: true 
-            });
-            currentX += colWidths.petakVrijeme;
-            
-            drawCell(currentX, startY + 8, colWidths.petakRucak, 8, ['prijava', 'RUCAK'], { 
-                fontSize: 7, fontStyle: 'bold', align: 'center', fillColor: [173, 216, 230], multiline: true, textColor: [255, 0, 0] 
-            });
-            currentX += colWidths.petakRucak;
-            
-            drawCell(currentX, startY + 8, colWidths.petakVecera, 8, ['prijava', 'VECERA'], { 
-                fontSize: 7, fontStyle: 'bold', align: 'center', fillColor: [173, 216, 230], multiline: true, textColor: [255, 0, 0] 
-            });
-            currentX += colWidths.petakVecera;
-            
-            // SUBOTA header (medium blue)
-            const subotaWidth = colWidths.subotaVrijeme + colWidths.subotaRucak + colWidths.subotaVecera;
-            drawCell(currentX, startY, subotaWidth, 8, 'SUBOTA', { 
-                fontSize: 9, fontStyle: 'bold', align: 'center', fillColor: [135, 206, 250] 
-            });
-            
-            // SUBOTA sub-headers
-            drawCell(currentX, startY + 8, colWidths.subotaVrijeme, 8, ['vrijeme', 'odlaska', '(hh:mm)'], { 
-                fontSize: 6, fontStyle: 'bold', align: 'center', fillColor: [135, 206, 250], multiline: true 
-            });
-            currentX += colWidths.subotaVrijeme;
-            
-            drawCell(currentX, startY + 8, colWidths.subotaRucak, 8, ['prijava', 'RUCAK'], { 
-                fontSize: 7, fontStyle: 'bold', align: 'center', fillColor: [135, 206, 250], multiline: true, textColor: [255, 0, 0] 
-            });
-            currentX += colWidths.subotaRucak;
-            
-            drawCell(currentX, startY + 8, colWidths.subotaVecera, 8, ['prijava', 'VECERA'], { 
-                fontSize: 7, fontStyle: 'bold', align: 'center', fillColor: [135, 206, 250], multiline: true, textColor: [255, 0, 0] 
-            });
-            currentX += colWidths.subotaVecera;
-            
-            // NEDJELJA header (light steel blue)
-            const nedjeljaWidth = colWidths.nedjeljaRucak + colWidths.nedjeljaVecera;
-            drawCell(currentX, startY, nedjeljaWidth, 8, 'NEDJELJA', { 
-                fontSize: 9, fontStyle: 'bold', align: 'center', fillColor: [176, 196, 222] 
-            });
-            
-            // NEDJELJA sub-headers
-            drawCell(currentX, startY + 8, colWidths.nedjeljaRucak, 8, ['prijava', 'RUCAK'], { 
-                fontSize: 7, fontStyle: 'bold', align: 'center', fillColor: [176, 196, 222], multiline: true, textColor: [255, 0, 0] 
-            });
-            currentX += colWidths.nedjeljaRucak;
-            
-            drawCell(currentX, startY + 8, colWidths.nedjeljaVecera, 8, ['prijava', 'VECERA'], { 
-                fontSize: 7, fontStyle: 'bold', align: 'center', fillColor: [176, 196, 222], multiline: true, textColor: [255, 0, 0] 
+            doc.autoTable({
+                head: [['R.BR', 'PREZIME', 'IME', 'NEDOST', 'OSTAJE', 'P-ODL', 'P-RUČ', 'P-VEČ', 'S-ODL', 'S-RUČ', 'S-VEČ', 'N-RUČ', 'N-VEČ']],
+                body: tableData,
+                startY: 25,
+                styles: { fontSize: 7 },
+                headStyles: { fillColor: [102, 126, 234] }
             });
 
-            // Draw data rows
-            allPeople.forEach((person, index) => {
-                const fullName = person.prezime + ' ' + person.ime;
-                const data = dataMap[fullName] || {
-                    nedostaje: '',
-                    ostaje: '',
-                    petakOdlazak: ':',
-                    petakRucak: '',
-                    petakVecera: '',
-                    subotaOdlazak: ':',
-                    subotaRucak: '',
-                    subotaVecera: '',
-                    nedjeljaRucak: '',
-                    nedjeljaVecera: ''
-                };
-
-                const rowY = startY + 16 + (index * rowHeight);
-                currentX = startX;
-
-                // Row data
-                drawCell(currentX, rowY, colWidths.rbr, rowHeight, person.num + '.', { align: 'center', fontSize: 9 });
-                currentX += colWidths.rbr;
-                
-                drawCell(currentX, rowY, colWidths.prezime, rowHeight, person.prezime, { fontSize: 9 });
-                currentX += colWidths.prezime;
-                
-                drawCell(currentX, rowY, colWidths.ime, rowHeight, person.ime, { fontSize: 9 });
-                currentX += colWidths.ime;
-                
-                drawCell(currentX, rowY, colWidths.nedostaje, rowHeight, data.nedostaje, { align: 'center', fontSize: 9 });
-                currentX += colWidths.nedostaje;
-                
-                drawCell(currentX, rowY, colWidths.ostaje, rowHeight, data.ostaje, { align: 'center', fontSize: 9 });
-                currentX += colWidths.ostaje;
-                
-                drawCell(currentX, rowY, colWidths.petakVrijeme, rowHeight, data.petakOdlazak, { align: 'center', fontSize: 9 });
-                currentX += colWidths.petakVrijeme;
-                
-                drawCell(currentX, rowY, colWidths.petakRucak, rowHeight, data.petakRucak, { align: 'center', fontSize: 9 });
-                currentX += colWidths.petakRucak;
-                
-                drawCell(currentX, rowY, colWidths.petakVecera, rowHeight, data.petakVecera, { align: 'center', fontSize: 9 });
-                currentX += colWidths.petakVecera;
-                
-                drawCell(currentX, rowY, colWidths.subotaVrijeme, rowHeight, data.subotaOdlazak, { align: 'center', fontSize: 9 });
-                currentX += colWidths.subotaVrijeme;
-                
-                drawCell(currentX, rowY, colWidths.subotaRucak, rowHeight, data.subotaRucak, { align: 'center', fontSize: 9 });
-                currentX += colWidths.subotaRucak;
-                
-                drawCell(currentX, rowY, colWidths.subotaVecera, rowHeight, data.subotaVecera, { align: 'center', fontSize: 9 });
-                currentX += colWidths.subotaVecera;
-                
-                drawCell(currentX, rowY, colWidths.nedjeljaRucak, rowHeight, data.nedjeljaRucak, { align: 'center', fontSize: 9 });
-                currentX += colWidths.nedjeljaRucak;
-                
-                drawCell(currentX, rowY, colWidths.nedjeljaVecera, rowHeight, data.nedjeljaVecera, { align: 'center', fontSize: 9 });
-            });
-
-            // Draw UKUPNO row
-            const ukupnoY = startY + 16 + (22 * rowHeight);
-            currentX = startX;
-            
-            drawCell(currentX, ukupnoY, colWidths.rbr, rowHeight, '', { fontSize: 9 });
-            currentX += colWidths.rbr;
-            
-            drawCell(currentX, ukupnoY, colWidths.prezime, rowHeight, '', { fontSize: 9 });
-            currentX += colWidths.prezime;
-            
-            drawCell(currentX, ukupnoY, colWidths.ime, rowHeight, 'UKUPNO:', { fontSize: 9, fontStyle: 'bold' });
-            currentX += colWidths.ime;
-            
-            // Calculate totals for each column
-            const totals = {
-                nedostaje: 0,
-                ostaje: 0,
-                petakRucak: 0,
-                petakVecera: 0,
-                subotaRucak: 0,
-                subotaVecera: 0,
-                nedjeljaRucak: 0,
-                nedjeljaVecera: 0
-            };
-
-            weekRows.forEach(row => {
-                if (!row) return; // Skip null/undefined rows
-                if (row[5] === 'DA') totals.ostaje++;
-                if (row[7] === 'DA') totals.petakRucak++;
-                if (row[8] === 'DA') totals.petakVecera++;
-                if (row[10] === 'DA') totals.subotaRucak++;
-                if (row[11] === 'DA') totals.subotaVecera++;
-                if (row[12] === 'DA') totals.nedjeljaRucak++;
-                if (row[13] === 'DA') totals.nedjeljaVecera++;
-            });
-
-            drawCell(currentX, ukupnoY, colWidths.nedostaje, rowHeight, '', { align: 'center', fontSize: 9 });
-            currentX += colWidths.nedostaje;
-            
-            drawCell(currentX, ukupnoY, colWidths.ostaje, rowHeight, totals.ostaje || '', { align: 'center', fontSize: 9, fontStyle: 'bold' });
-            currentX += colWidths.ostaje;
-            
-            drawCell(currentX, ukupnoY, colWidths.petakVrijeme, rowHeight, '', { align: 'center', fontSize: 9 });
-            currentX += colWidths.petakVrijeme;
-            
-            drawCell(currentX, ukupnoY, colWidths.petakRucak, rowHeight, totals.petakRucak || '', { align: 'center', fontSize: 9, fontStyle: 'bold' });
-            currentX += colWidths.petakRucak;
-            
-            drawCell(currentX, ukupnoY, colWidths.petakVecera, rowHeight, totals.petakVecera || '', { align: 'center', fontSize: 9, fontStyle: 'bold' });
-            currentX += colWidths.petakVecera;
-            
-            drawCell(currentX, ukupnoY, colWidths.subotaVrijeme, rowHeight, '', { align: 'center', fontSize: 9 });
-            currentX += colWidths.subotaVrijeme;
-            
-            drawCell(currentX, ukupnoY, colWidths.subotaRucak, rowHeight, totals.subotaRucak || '', { align: 'center', fontSize: 9, fontStyle: 'bold' });
-            currentX += colWidths.subotaRucak;
-            
-            drawCell(currentX, ukupnoY, colWidths.subotaVecera, rowHeight, totals.subotaVecera || '', { align: 'center', fontSize: 9, fontStyle: 'bold' });
-            currentX += colWidths.subotaVecera;
-            
-            drawCell(currentX, ukupnoY, colWidths.nedjeljaRucak, rowHeight, totals.nedjeljaRucak || '', { align: 'center', fontSize: 9, fontStyle: 'bold' });
-            currentX += colWidths.nedjeljaRucak;
-            
-            drawCell(currentX, ukupnoY, colWidths.nedjeljaVecera, rowHeight, totals.nedjeljaVecera || '', { align: 'center', fontSize: 9, fontStyle: 'bold' });
-
-            // Save PDF
-            doc.save('odlazak-kuci-' + currentWeek + '.pdf');
+            doc.save(`Izvjestaj_${currentWeek}.pdf`);
         }
 
-            // All 22 people in exact order from template
-            const allPeople = [
-                { num: 1, prezime: "Božičević", ime: "Josip" },
-                { num: 2, prezime: "Božičević", ime: "Maks Anton" },
-                { num: 3, prezime: "Bernardić", ime: "Niko" },
-                { num: 4, prezime: "Cetinić", ime: "Petar" },
-                { num: 5, prezime: "Ćalić", ime: "Lucas" },
-                { num: 6, prezime: "Dasović", ime: "Mislav" },
-                { num: 7, prezime: "Ferara", ime: "Patrik" },
-                { num: 8, prezime: "Herceg", ime: "Mihael" },
-                { num: 9, prezime: "Išek", ime: "Dominik" },
-                { num: 10, prezime: "Jerčić", ime: "Duje" },
-                { num: 11, prezime: "Kukuruzović", ime: "Slavko" },
-                { num: 12, prezime: "Malnar", ime: "Luka" },
-                { num: 13, prezime: "Maračić", ime: "Luka" },
-                { num: 14, prezime: "Mičurin", ime: "Marko" },
-                { num: 15, prezime: "Milošević", ime: "Aron" },
-                { num: 16, prezime: "Rendulić", ime: "Noa Izak" },
-                { num: 17, prezime: "Sabljak", ime: "Marko" },
-                { num: 18, prezime: "Štemberger", ime: "Fran" },
-                { num: 19, prezime: "Tokić", ime: "Gabriel" },
-                { num: 20, prezime: "Tomljanović", ime: "Petar" },
-                { num: 21, prezime: "Turk", ime: "Niko" },
-                { num: 22, prezime: "Žic", ime: "David" }
-            ];
+        // Event Listeners
+        document.getElementById('refreshBtn').onclick = loadData;
+        document.getElementById('logoutBtn').onclick = () => location.reload();
+        document.getElementById('generatePdfBtn').onclick = async () => {
+            const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SPREADSHEET_ID}/values/Sheet1!A2:N?key=${CONFIG.API_KEY}`);
+            const data = await res.json();
+            generatePDFReport((data.values || []).filter(r => r[1] === getCurrentWeek()), getCurrentWeek());
+        };
 
-            // Create data map for quick lookup
-            const dataMap = {};
-            weekRows.forEach(row => {
-                if (!row || !row[3]) return; // Skip invalid rows
-                
-                const fullName = row[3]; // ime_prezime column
-                dataMap[fullName] = {
-                    nedostaje: '',  // NEDOSTAJE column (empty for now)
-                    ostaje: (row[5] === 'DA') ? 'DA' : '',   // OSTAJE column - from "ostajem cijeli vikend"
-                    petakOdlazak: (row[6] && row[6] !== '-') ? row[6] : ':',
-                    petakRucak: (row[7] === 'DA') ? 'DA' : '',
-                    petakVecera: (row[8] === 'DA') ? 'DA' : '',
-                    subotaOdlazak: (row[9] && row[9] !== '-') ? row[9] : ':',
-                    subotaRucak: (row[10] === 'DA') ? 'DA' : '',
-                    subotaVecera: (row[11] === 'DA') ? 'DA' : '',
-                    nedjeljaRucak: (row[12] === 'DA') ? 'DA' : '',
-                    nedjeljaVecera: (row[13] === 'DA') ? 'DA' : ''
-                };
-            });
-
-            // Set up the page
-            doc.setFont('helvetica');
-            
-            // Title - centered at top
-            doc.setFontSize(12);
-            doc.setFont('helvetica', 'bold');
-            doc.text('7. ODGOJNA SKUPINA', 148, 15, { align: 'center' });
-            doc.text('ODLAZAK KUĆI ______________', 148, 22, { align: 'center' });
-
-            // Define precise column widths and positions
-            const startX = 10;
-            const startY = 35;
-            const rowHeight = 8.2;
-            
-            const colWidths = {
-                rbr: 12,        // R.BR.
-                prezime: 25,    // PREZIME
-                ime: 22,        // IME
-                nedostaje: 18,  // NEDOSTAJE
-                ostaje: 18,     // OSTAJE
-                petakVrijeme: 16,   // PETAK vrijeme
-                petakRucak: 16,     // PETAK ručak
-                petakVecera: 16,    // PETAK večera
-                subotaVrijeme: 16,  // SUBOTA vrijeme
-                subotaRucak: 16,    // SUBOTA ručak
-                subotaVecera: 16,   // SUBOTA večera
-                nedjeljaRucak: 16,  // NEDJELJA ručak
-                nedjeljaVecera: 16  // NEDJELJA večera
-            };
-
-            // Draw table borders manually for precise control
-            const drawCell = (x, y, width, height, text, options = {}) => {
-                // Draw border
-                doc.setLineWidth(0.3);
-                doc.rect(x, y, width, height);
-                
-                // Fill background if specified
-                if (options.fillColor) {
-                    doc.setFillColor(...options.fillColor);
-                    doc.rect(x, y, width, height, 'F');
-                    doc.rect(x, y, width, height); // Redraw border
-                }
-                
-                // Set text properties
-                doc.setFontSize(options.fontSize || 9);
-                doc.setFont('helvetica', options.fontStyle || 'normal');
-                doc.setTextColor(options.textColor || [0, 0, 0]);
-                
-                // Draw text
-                const textX = x + (options.align === 'center' ? width / 2 : 2);
-                const textY = y + height / 2 + (options.multiline ? -2 : 2);
-                
-                if (options.multiline && Array.isArray(text)) {
-                    text.forEach((line, i) => {
-                        doc.text(line, textX, textY + (i * 3.5), { align: options.align || 'left' });
-                    });
-                } else {
-                    doc.text(String(text || ''), textX, textY, { align: options.align || 'left' });
-                }
-            };
-
-            // Draw header row 1 (merged cells)
-            let currentX = startX;
-            
-            drawCell(currentX, startY, colWidths.rbr, 16, 'R.BR.', { 
-                fontSize: 8, fontStyle: 'bold', align: 'center', fillColor: [255, 255, 255] 
-            });
-            currentX += colWidths.rbr;
-            
-            drawCell(currentX, startY, colWidths.prezime, 16, 'PREZIME', { 
-                fontSize: 8, fontStyle: 'bold', align: 'center', fillColor: [255, 255, 255] 
-            });
-            currentX += colWidths.prezime;
-            
-            drawCell(currentX, startY, colWidths.ime, 16, 'IME', { 
-                fontSize: 8, fontStyle: 'bold', align: 'center', fillColor: [255, 255, 255] 
-            });
-            currentX += colWidths.ime;
-            
-            drawCell(currentX, startY, colWidths.nedostaje, 16, ['NEDOSTAJE'], { 
-                fontSize: 7, fontStyle: 'bold', align: 'center', fillColor: [255, 255, 255], multiline: true 
-            });
-            currentX += colWidths.nedostaje;
-            
-            drawCell(currentX, startY, colWidths.ostaje, 16, ['OSTAJE', '- napsati razlog'], { 
-                fontSize: 7, fontStyle: 'bold', align: 'center', fillColor: [255, 255, 255], multiline: true 
-            });
-            currentX += colWidths.ostaje;
-            
-            // PETAK header (light blue)
-            const petakWidth = colWidths.petakVrijeme + colWidths.petakRucak + colWidths.petakVecera;
-            drawCell(currentX, startY, petakWidth, 8, 'PETAK', { 
-                fontSize: 9, fontStyle: 'bold', align: 'center', fillColor: [173, 216, 230] 
-            });
-            
-            // PETAK sub-headers
-            drawCell(currentX, startY + 8, colWidths.petakVrijeme, 8, ['vrijeme', 'odlaska', '(hh:mm)'], { 
-                fontSize: 6, fontStyle: 'bold', align: 'center', fillColor: [173, 216, 230], multiline: true 
-            });
-            currentX += colWidths.petakVrijeme;
-            
-            drawCell(currentX, startY + 8, colWidths.petakRucak, 8, ['prijava', 'RUČAK'], { 
-                fontSize: 7, fontStyle: 'bold', align: 'center', fillColor: [173, 216, 230], multiline: true, textColor: [255, 0, 0] 
-            });
-            currentX += colWidths.petakRucak;
-            
-            drawCell(currentX, startY + 8, colWidths.petakVecera, 8, ['prijava', 'VEČERA'], { 
-                fontSize: 7, fontStyle: 'bold', align: 'center', fillColor: [173, 216, 230], multiline: true, textColor: [255, 0, 0] 
-            });
-            currentX += colWidths.petakVecera;
-            
-            // SUBOTA header (medium blue)
-            const subotaWidth = colWidths.subotaVrijeme + colWidths.subotaRucak + colWidths.subotaVecera;
-            drawCell(currentX, startY, subotaWidth, 8, 'SUBOTA', { 
-                fontSize: 9, fontStyle: 'bold', align: 'center', fillColor: [135, 206, 250] 
-            });
-            
-            // SUBOTA sub-headers
-            drawCell(currentX, startY + 8, colWidths.subotaVrijeme, 8, ['vrijeme', 'odlaska', '(hh:mm)'], { 
-                fontSize: 6, fontStyle: 'bold', align: 'center', fillColor: [135, 206, 250], multiline: true 
-            });
-            currentX += colWidths.subotaVrijeme;
-            
-            drawCell(currentX, startY + 8, colWidths.subotaRucak, 8, ['prijava', 'RUČAK'], { 
-                fontSize: 7, fontStyle: 'bold', align: 'center', fillColor: [135, 206, 250], multiline: true, textColor: [255, 0, 0] 
-            });
-            currentX += colWidths.subotaRucak;
-            
-            drawCell(currentX, startY + 8, colWidths.subotaVecera, 8, ['prijava', 'VEČERA'], { 
-                fontSize: 7, fontStyle: 'bold', align: 'center', fillColor: [135, 206, 250], multiline: true, textColor: [255, 0, 0] 
-            });
-            currentX += colWidths.subotaVecera;
-            
-            // NEDJELJA header (light steel blue)
-            const nedjeljaWidth = colWidths.nedjeljaRucak + colWidths.nedjeljaVecera;
-            drawCell(currentX, startY, nedjeljaWidth, 8, 'NEDJELJA', { 
-                fontSize: 9, fontStyle: 'bold', align: 'center', fillColor: [176, 196, 222] 
-            });
-            
-            // NEDJELJA sub-headers
-            drawCell(currentX, startY + 8, colWidths.nedjeljaRucak, 8, ['prijava', 'RUČAK'], { 
-                fontSize: 7, fontStyle: 'bold', align: 'center', fillColor: [176, 196, 222], multiline: true, textColor: [255, 0, 0] 
-            });
-            currentX += colWidths.nedjeljaRucak;
-            
-            drawCell(currentX, startY + 8, colWidths.nedjeljaVecera, 8, ['prijava', 'VEČERA'], { 
-                fontSize: 7, fontStyle: 'bold', align: 'center', fillColor: [176, 196, 222], multiline: true, textColor: [255, 0, 0] 
-            });
-
-            // Draw data rows
-            allPeople.forEach((person, index) => {
-                const fullName = `${person.prezime} ${person.ime}`;
-                const data = dataMap[fullName] || {
-                    nedostaje: '',
-                    ostaje: '',
-                    petakOdlazak: ':',
-                    petakRucak: '',
-                    petakVecera: '',
-                    subotaOdlazak: ':',
-                    subotaRucak: '',
-                    subotaVecera: '',
-                    nedjeljaRucak: '',
-                    nedjeljaVecera: ''
-                };
-
-                const rowY = startY + 16 + (index * rowHeight);
-                currentX = startX;
-
-                // Row data
-                drawCell(currentX, rowY, colWidths.rbr, rowHeight, person.num + '.', { align: 'center', fontSize: 9 });
-                currentX += colWidths.rbr;
-                
-                drawCell(currentX, rowY, colWidths.prezime, rowHeight, person.prezime, { fontSize: 9 });
-                currentX += colWidths.prezime;
-                
-                drawCell(currentX, rowY, colWidths.ime, rowHeight, person.ime, { fontSize: 9 });
-                currentX += colWidths.ime;
-                
-                drawCell(currentX, rowY, colWidths.nedostaje, rowHeight, data.nedostaje, { align: 'center', fontSize: 9 });
-                currentX += colWidths.nedostaje;
-                
-                drawCell(currentX, rowY, colWidths.ostaje, rowHeight, data.ostaje, { align: 'center', fontSize: 9 });
-                currentX += colWidths.ostaje;
-                
-                drawCell(currentX, rowY, colWidths.petakVrijeme, rowHeight, data.petakOdlazak, { align: 'center', fontSize: 9 });
-                currentX += colWidths.petakVrijeme;
-                
-                drawCell(currentX, rowY, colWidths.petakRucak, rowHeight, data.petakRucak, { align: 'center', fontSize: 9 });
-                currentX += colWidths.petakRucak;
-                
-                drawCell(currentX, rowY, colWidths.petakVecera, rowHeight, data.petakVecera, { align: 'center', fontSize: 9 });
-                currentX += colWidths.petakVecera;
-                
-                drawCell(currentX, rowY, colWidths.subotaVrijeme, rowHeight, data.subotaOdlazak, { align: 'center', fontSize: 9 });
-                currentX += colWidths.subotaVrijeme;
-                
-                drawCell(currentX, rowY, colWidths.subotaRucak, rowHeight, data.subotaRucak, { align: 'center', fontSize: 9 });
-                currentX += colWidths.subotaRucak;
-                
-                drawCell(currentX, rowY, colWidths.subotaVecera, rowHeight, data.subotaVecera, { align: 'center', fontSize: 9 });
-                currentX += colWidths.subotaVecera;
-                
-                drawCell(currentX, rowY, colWidths.nedjeljaRucak, rowHeight, data.nedjeljaRucak, { align: 'center', fontSize: 9 });
-                currentX += colWidths.nedjeljaRucak;
-                
-                drawCell(currentX, rowY, colWidths.nedjeljaVecera, rowHeight, data.nedjeljaVecera, { align: 'center', fontSize: 9 });
-            });
-
-            // Draw UKUPNO row
-            const ukupnoY = startY + 16 + (22 * rowHeight);
-            currentX = startX;
-            
-            drawCell(currentX, ukupnoY, colWidths.rbr, rowHeight, '', { fontSize: 9 });
-            currentX += colWidths.rbr;
-            
-            drawCell(currentX, ukupnoY, colWidths.prezime, rowHeight, '', { fontSize: 9 });
-            currentX += colWidths.prezime;
-            
-            drawCell(currentX, ukupnoY, colWidths.ime, rowHeight, 'UKUPNO:', { fontSize: 9, fontStyle: 'bold' });
-            currentX += colWidths.ime;
-            
-            // Calculate totals for each column
-            const totals = {
-                nedostaje: 0,
-                ostaje: 0,
-                petakRucak: 0,
-                petakVecera: 0,
-                subotaRucak: 0,
-                subotaVecera: 0,
-                nedjeljaRucak: 0,
-                nedjeljaVecera: 0
-            };
-
-            weekRows.forEach(row => {
-                if (!row) return; // Skip null/undefined rows
-                if (row[5] === 'DA') totals.ostaje++;
-                if (row[7] === 'DA') totals.petakRucak++;
-                if (row[8] === 'DA') totals.petakVecera++;
-                if (row[10] === 'DA') totals.subotaRucak++;
-                if (row[11] === 'DA') totals.subotaVecera++;
-                if (row[12] === 'DA') totals.nedjeljaRucak++;
-                if (row[13] === 'DA') totals.nedjeljaVecera++;
-            });
-
-            drawCell(currentX, ukupnoY, colWidths.nedostaje, rowHeight, '', { align: 'center', fontSize: 9 });
-            currentX += colWidths.nedostaje;
-            
-            drawCell(currentX, ukupnoY, colWidths.ostaje, rowHeight, totals.ostaje || '', { align: 'center', fontSize: 9, fontStyle: 'bold' });
-            currentX += colWidths.ostaje;
-            
-            drawCell(currentX, ukupnoY, colWidths.petakVrijeme, rowHeight, '', { align: 'center', fontSize: 9 });
-            currentX += colWidths.petakVrijeme;
-            
-            drawCell(currentX, ukupnoY, colWidths.petakRucak, rowHeight, totals.petakRucak || '', { align: 'center', fontSize: 9, fontStyle: 'bold' });
-            currentX += colWidths.petakRucak;
-            
-            drawCell(currentX, ukupnoY, colWidths.petakVecera, rowHeight, totals.petakVecera || '', { align: 'center', fontSize: 9, fontStyle: 'bold' });
-            currentX += colWidths.petakVecera;
-            
-            drawCell(currentX, ukupnoY, colWidths.subotaVrijeme, rowHeight, '', { align: 'center', fontSize: 9 });
-            currentX += colWidths.subotaVrijeme;
-            
-            drawCell(currentX, ukupnoY, colWidths.subotaRucak, rowHeight, totals.subotaRucak || '', { align: 'center', fontSize: 9, fontStyle: 'bold' });
-            currentX += colWidths.subotaRucak;
-            
-            drawCell(currentX, ukupnoY, colWidths.subotaVecera, rowHeight, totals.subotaVecera || '', { align: 'center', fontSize: 9, fontStyle: 'bold' });
-            currentX += colWidths.subotaVecera;
-            
-            drawCell(currentX, ukupnoY, colWidths.nedjeljaRucak, rowHeight, totals.nedjeljaRucak || '', { align: 'center', fontSize: 9, fontStyle: 'bold' });
-            currentX += colWidths.nedjeljaRucak;
-            
-            drawCell(currentX, ukupnoY, colWidths.nedjeljaVecera, rowHeight, totals.nedjeljaVecera || '', { align: 'center', fontSize: 9, fontStyle: 'bold' });
-
-            // Save PDF
-            doc.save('odlazak-kuci-' + currentWeek + '.pdf');
-        }
-
-        // Initialize when page loads
-        window.addEventListener('load', () => {
-            initializeGoogleSignIn();
-        });
-
-        // Auto-refresh every 30 seconds
-        setInterval(() => {
-            if (!document.getElementById('adminDashboard').classList.contains('hidden')) {
-                loadData();
-            }
-        }, 30000);
+        window.onload = initializeGoogleSignIn;
     </script>
 </body>
 </html>
