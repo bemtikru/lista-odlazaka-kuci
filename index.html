@@ -263,7 +263,7 @@
             <form id="dataForm">
                 <div class="form-group">
                     <label class="form-label">IME I PREZIME</label>
-                    <select class="form-select" name="ime_prezime" required>
+                    <select class="form-select" name="ime_prezime" id="imePrezime">
                         <option value="-">-</option>
                         <option value="Božičević Josip">Božičević Josip</option>
                         <option value="Božičević Maks Anton">Božičević Maks Anton</option>
@@ -538,6 +538,17 @@
             const successMsg = document.getElementById('successMessage');
             const errorMsg = document.getElementById('errorMessage');
             
+            // Validate that a name is selected (not "-")
+            const imePrezime = document.getElementById('imePrezime').value;
+            if (imePrezime === '-') {
+                errorMsg.textContent = 'Molimo odaberite ime i prezime.';
+                errorMsg.classList.add('show');
+                setTimeout(() => {
+                    errorMsg.classList.remove('show');
+                }, 3000);
+                return;
+            }
+            
             submitBtn.disabled = true;
             submitBtn.textContent = 'Šaljem...';
             successMsg.classList.remove('show');
@@ -574,6 +585,7 @@
                 
             } catch (error) {
                 console.error('Error:', error);
+                errorMsg.textContent = 'Greška pri slanju podataka: ' + (error.message || 'Pokušajte ponovno.');
                 errorMsg.classList.add('show');
                 setTimeout(() => {
                     errorMsg.classList.remove('show');
@@ -603,24 +615,32 @@
                 data.nedjelja_vecera
             ]];
 
-            const response = await fetch(
-                `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SPREADSHEET_ID}/values/Sheet1!A:N:append?valueInputOption=RAW&key=${CONFIG.API_KEY}`,
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        values: values
-                    })
+            // First, try to use the simple API with key
+            try {
+                const response = await fetch(
+                    `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SPREADSHEET_ID}/values/Sheet1!A:N:append?valueInputOption=USER_ENTERED&key=${CONFIG.API_KEY}`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            values: values
+                        })
+                    }
+                );
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error('API Error:', errorData);
+                    throw new Error(errorData.error?.message || 'Failed to submit data to Google Sheets');
                 }
-            );
 
-            if (!response.ok) {
-                throw new Error('Failed to submit data');
+                return await response.json();
+            } catch (error) {
+                console.error('Submit error:', error);
+                throw error;
             }
-
-            return await response.json();
         }
 
         // Initialize when page loads
