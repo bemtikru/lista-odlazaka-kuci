@@ -533,19 +533,14 @@
                 
                 // Filter for current week
                 const currentWeek = getCurrentWeek();
-                const weekRows = rows.filter(row => row[1] === currentWeek);
+                const weekRows = rows.filter(row => row && row[1] === currentWeek);
 
-                if (weekRows.length === 0) {
-                    alert('Nema podataka za trenutni tjedan');
-                    return;
-                }
-
-                // Generate PDF
+                // Always generate PDF, even with no data
                 generatePDFReport(weekRows, currentWeek);
 
             } catch (error) {
                 console.error('Error generating PDF:', error);
-                alert('Greška pri generiranju PDF-a');
+                alert('Greška pri generiranju PDF-a: ' + error.message);
             }
         });
 
@@ -583,18 +578,20 @@
             // Create data map for quick lookup
             const dataMap = {};
             weekRows.forEach(row => {
+                if (!row || !row[3]) return; // Skip invalid rows
+                
                 const fullName = row[3]; // ime_prezime column
                 dataMap[fullName] = {
-                    nedostaje: row[5] === 'DA' ? '' : '',  // NEDOSTAJE column (empty for now)
-                    ostaje: row[5] === 'DA' ? 'DA' : '',   // OSTAJE column - from "ostajem cijeli vikend"
-                    petakOdlazak: row[6] && row[6] !== '-' ? row[6] : ':',
-                    petakRucak: row[7] === 'DA' ? 'DA' : '',
-                    petakVecera: row[8] === 'DA' ? 'DA' : '',
-                    subotaOdlazak: row[9] && row[9] !== '-' ? row[9] : ':',
-                    subotaRucak: row[10] === 'DA' ? 'DA' : '',
-                    subotaVecera: row[11] === 'DA' ? 'DA' : '',
-                    nedjeljaRucak: row[12] === 'DA' ? 'DA' : '',
-                    nedjeljaVecera: row[13] === 'DA' ? 'DA' : ''
+                    nedostaje: '',  // NEDOSTAJE column (empty for now)
+                    ostaje: (row[5] === 'DA') ? 'DA' : '',   // OSTAJE column - from "ostajem cijeli vikend"
+                    petakOdlazak: (row[6] && row[6] !== '-') ? row[6] : ':',
+                    petakRucak: (row[7] === 'DA') ? 'DA' : '',
+                    petakVecera: (row[8] === 'DA') ? 'DA' : '',
+                    subotaOdlazak: (row[9] && row[9] !== '-') ? row[9] : ':',
+                    subotaRucak: (row[10] === 'DA') ? 'DA' : '',
+                    subotaVecera: (row[11] === 'DA') ? 'DA' : '',
+                    nedjeljaRucak: (row[12] === 'DA') ? 'DA' : '',
+                    nedjeljaVecera: (row[13] === 'DA') ? 'DA' : ''
                 };
             });
 
@@ -832,6 +829,7 @@
             };
 
             weekRows.forEach(row => {
+                if (!row) return; // Skip null/undefined rows
                 if (row[5] === 'DA') totals.ostaje++;
                 if (row[7] === 'DA') totals.petakRucak++;
                 if (row[8] === 'DA') totals.petakVecera++;
