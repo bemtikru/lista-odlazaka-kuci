@@ -423,14 +423,7 @@ doc.addFont(
                 doc.setDrawColor(0,0,0);doc.setLineWidth(0.1);doc.rect(x,y,w,h);
                 if(t){
                     doc.setFontSize(s);doc.setFont('RobotoCondensed',b?'bold':'normal');doc.setTextColor(tc[0],tc[1],tc[2]);
-                    let tx = a === 'center' ? x + w / 2 : x + 1;
-let ty = y + h / 2 + s / 3;
-
-if (rot === -90) {
-    tx = x + w / 2 - s / 2;
-    ty = y + h - 2;
-}
-
+                const tx=a==='center'?x+w/2:x+1, ty=y+h/2+s/3;
                     if(Array.isArray(t)){
                         const lh=s*0.4, sty=y+h/2-((t.length-1)*lh/2);
                         t.forEach(function(l,i){doc.text(String(l),tx,sty+(i*lh),{align:a, angle: rot || 0 });});
