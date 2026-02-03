@@ -429,12 +429,11 @@ doc.addFont(
         let ty = y + h / 2 + s / 3;
 
         if (rot === 90) {
-		let tx = x + 5; 
-  		let ty = y + (h / 2);
-    
-  		doc.text(String(t), tx, ty, { align: 'center', angle: 90 });
-   		return;
-}
+        let tx = x + 50; 
+    	let ty = y + (h / 2);
+   	doc.text(String(t), tx, ty, { align: 'center', angle: 90 });
+    	return;
+	}
 
         if (Array.isArray(t)) {
             const lh = s * 0.4, sty = y + h / 2 - ((t.length - 1) * lh / 2);
