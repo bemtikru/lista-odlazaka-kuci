@@ -410,13 +410,13 @@ doc.addFont(
             });
 
             const cW=[11.47,21.63,21.04,6.67,15.59,13.65,12.91,14.89,13.65,12.95,14.89,12.95,14.78];
-            const sX=15, sY=30, hH=18, rH=9;
+            const sX=15, sY=50, hH=18, rH=9;
             const clr={p:[217,226,243],s:[226,239,217],n:[237,237,237],y:[255,255,229],db:[31,78,121],r:[192,0,0]};
 
             doc.setFontSize(16);
             doc.setFont('RobotoCondensed','bold');
-            doc.text('7. ODGOJNA SKUPINA',105,15,{align:'center'});
-            doc.text('ODLAZAK KUĆI ______________',105,23,{align:'center'});
+            doc.text('7. ODGOJNA SKUPINA',105,35,{align:'center'});
+            doc.text('ODLAZAK KUĆI ______________',105,43,{align:'center'});
 
             function dc(x,y,w,h,t,bg,tc,s,b,a,rot) {
                 if(bg){doc.setFillColor(bg[0],bg[1],bg[2]);doc.rect(x,y,w,h,'F');}
@@ -435,19 +435,19 @@ doc.addFont(
             dc(x,sY,cW[0],hH,'R.BR.',null,[0,0,0],10,1,'center');x+=cW[0];
             dc(x,sY,cW[1],hH,'PREZIME',null,[0,0,0],10,1,'center');x+=cW[1];
             dc(x,sY,cW[2],hH,'IME',null,[0,0,0],10,1,'center');x+=cW[2];
-            dc(x,sY,cW[3],hH,'NEDOSTAJE',clr.y,[0,0,0],8,1,'center', 90);x+=cW[3];
+            dc(x + 4.5, sY, cW[3], hH, 'NEDOSTAJE', clr.y, [0,0,0], 8, 1, 'center', 90);x += cW[3];
             dc(x,sY,cW[4],hH,['OSTAJE','- razlog'],null,clr.db,7,1,'center');x+=cW[4];
             
             const pW=cW[5]+cW[6]+cW[7];
             dc(x,sY,pW,hH/2,'PETAK',clr.p,clr.db,10,1,'center');
-            dc(x,sY+hH/2,cW[5],hH/2,['vrijeme','odlaska','(hh:mm)'],clr.p,[0,0,0],7,1,'center');
+            dc(x,sY+hH/2,cW[5],hH/2,['vrijeme','odlaska'],clr.p,[0,0,0],7,1,'center');
             dc(x+cW[5],sY+hH/2,cW[6],hH/2,['prijava','RUČAK'],clr.p,clr.r,7,1,'center');
             dc(x+cW[5]+cW[6],sY+hH/2,cW[7],hH/2,['prijava','VEČERA'],clr.p,clr.r,7,1,'center');
             x+=pW;
             
             const sW=cW[8]+cW[9]+cW[10];
             dc(x,sY,sW,hH/2,'SUBOTA',clr.s,clr.db,10,1,'center');
-            dc(x,sY+hH/2,cW[8],hH/2,['vrijeme','odlaska','(hh:mm)'],clr.s,[0,0,0],7,1,'center');
+            dc(x,sY+hH/2,cW[8],hH/2,['vrijeme','odlaska'],clr.s,[0,0,0],7,1,'center');
             dc(x+cW[8],sY+hH/2,cW[9],hH/2,['prijava','RUČAK'],clr.s,clr.r,7,1,'center');
             dc(x+cW[8]+cW[9],sY+hH/2,cW[10],hH/2,['prijava','VEČERA'],clr.s,clr.r,7,1,'center');
             x+=sW;
