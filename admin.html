@@ -399,15 +399,21 @@ doc.addFont(
             ];
 
             const dataMap = {};
-            weekRows.forEach(function(r) {
-                if (!r || !r[3]) return;
-                dataMap[r[3]] = {
-                    ne:'', os:(r[5]==='DA')?'DA':'', pO:(r[6]&&r[6]!=='-')?r[6]:':',
-                    pR:(r[7]==='DA')?'DA':'', pV:(r[8]==='DA')?'DA':'',
-                    sO:(r[9]&&r[9]!=='-')?r[9]:':', sR:(r[10]==='DA')?'DA':'', sV:(r[11]==='DA')?'DA':'',
-                    nR:(r[12]==='DA')?'DA':'', nV:(r[13]==='DA')?'DA':''
-                };
-            });
+		weekRows.forEach(function(r) {
+  		  if (!r || !r[3]) return;
+  		  dataMap[r[3]] = {
+      	        ne: (r[4] === 'DA') ? 'DA' : '', 
+        	os: (r[5] === 'DA') ? 'DA' : '', 
+        	pO: (r[6] && r[6] !== '-') ? r[6] : ':',
+        	pR: (r[7] === 'DA') ? 'DA' : '', 
+        	pV: (r[8] === 'DA') ? 'DA' : '',
+        	sO: (r[9] && r[9] !== '-') ? r[9] : ':', 
+        	sR: (r[10] === 'DA') ? 'DA' : '', 
+        	sV: (r[11] === 'DA') ? 'DA' : '',
+        	nR: (r[12] === 'DA') ? 'DA' : '', 
+        	nV: (r[13] === 'DA') ? 'DA' : ''
+    		};
+	});
 
             const cW=[11.47,21.63,21.04,6.67,15.59,13.65,12.91,14.89,13.65,12.95,14.89,12.95,14.78];
             const sX=15, sY=40, hH=18, rH=9;
