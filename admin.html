@@ -491,9 +491,10 @@ doc.addFont(
 
             const uY=sY+hH+(22*rH);
             x=sX;
-            const tot={os:0,pR:0,pV:0,sR:0,sV:0,nR:0,nV:0};
+            const tot = { ne: 0, os: 0, pR: 0, pV: 0, sR: 0, sV: 0, nR: 0, nV: 0 };
             weekRows.forEach(function(r){
                 if(!r)return;
+		if(r[4]==='DA')tot.ne++;
                 if(r[5]==='DA')tot.os++;
                 if(r[7]==='DA')tot.pR++;
                 if(r[8]==='DA')tot.pV++;
@@ -506,7 +507,7 @@ doc.addFont(
             dc(x,uY,cW[0],rH,'',null,[0,0,0],10,0,'center');x+=cW[0];
             dc(x,uY,cW[1],rH,'',null,[0,0,0],10,0,'left');x+=cW[1];
             dc(x,uY,cW[2],rH,'UKUPNO:',null,[0,0,0],10,1,'left');x+=cW[2];
-            dc(x,uY,cW[3],rH,'',null,[0,0,0],10,0,'center');x+=cW[3];
+            dc(x,uY,cW[3],rH,tot.ne||'',null,[0,0,0],10,1,'center');x+=cW[3];
             dc(x,uY,cW[4],rH,tot.os||'',null,[0,0,0],10,1,'center');x+=cW[4];
             dc(x,uY,cW[5],rH,'',null,[0,0,0],10,0,'center');x+=cW[5];
             dc(x,uY,cW[6],rH,tot.pR||'',null,[0,0,0],10,1,'center');x+=cW[6];
