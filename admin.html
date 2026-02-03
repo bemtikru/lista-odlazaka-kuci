@@ -410,24 +410,31 @@ doc.addFont(
             });
 
             const cW=[11.47,21.63,21.04,6.67,15.59,13.65,12.91,14.89,13.65,12.95,14.89,12.95,14.78];
-            const sX=15, sY=30, hH=12, rH=7.5;
+            const sX=15, sY=30, hH=18, rH=9;
             const clr={p:[217,226,243],s:[226,239,217],n:[237,237,237],y:[255,255,229],db:[31,78,121],r:[192,0,0]};
 
             doc.setFontSize(16);
             doc.setFont('RobotoCondensed','bold');
             doc.text('7. ODGOJNA SKUPINA',105,15,{align:'center'});
-            doc.text('ODLAZAK KUCI ______________',105,23,{align:'center'});
+            doc.text('ODLAZAK KUĆI ______________',105,23,{align:'center'});
 
-            function dc(x,y,w,h,t,bg,tc,s,b,a) {
+            function dc(x,y,w,h,t,bg,tc,s,b,a,rot) {
                 if(bg){doc.setFillColor(bg[0],bg[1],bg[2]);doc.rect(x,y,w,h,'F');}
                 doc.setDrawColor(0,0,0);doc.setLineWidth(0.1);doc.rect(x,y,w,h);
                 if(t){
                     doc.setFontSize(s);doc.setFont('RobotoCondensed',b?'bold':'normal');doc.setTextColor(tc[0],tc[1],tc[2]);
-                    const tx=a==='center'?x+w/2:x+1, ty=y+h/2+s/3;
+                    let tx = a === 'center' ? x + w / 2 : x + 1;
+let ty = y + h / 2 + s / 3;
+
+if (rot === -90) {
+    tx = x + w / 2 - s / 2;
+    ty = y + h - 2;
+}
+
                     if(Array.isArray(t)){
                         const lh=s*0.4, sty=y+h/2-((t.length-1)*lh/2);
-                        t.forEach(function(l,i){doc.text(String(l),tx,sty+(i*lh),{align:a});});
-                    }else{doc.text(String(t),tx,ty,{align:a});}
+                        t.forEach(function(l,i){doc.text(String(l),tx,sty+(i*lh),{align:a, angle: rot || 0 });});
+                    }else{doc.text(String(t), tx, ty, { align: a, angle: rot || 0 });}
                 }
             }
 
@@ -435,8 +442,8 @@ doc.addFont(
             dc(x,sY,cW[0],hH,'R.BR.',null,[0,0,0],10,1,'center');x+=cW[0];
             dc(x,sY,cW[1],hH,'PREZIME',null,[0,0,0],10,1,'center');x+=cW[1];
             dc(x,sY,cW[2],hH,'IME',null,[0,0,0],10,1,'center');x+=cW[2];
-            dc(x,sY,cW[3],hH,'NEDOSTAJE',clr.y,[0,0,0],8,1,'center');x+=cW[3];
-            dc(x,sY,cW[4],hH,['OSTAJE','- napsati razlog'],null,clr.db,7,1,'center');x+=cW[4];
+            dc(x,sY,cW[3],hH,'NEDOSTAJE',clr.y,[0,0,0],8,1,'center', -90);
+            dc(x,sY,cW[4],hH,['OSTAJE','- napisati razlog'],null,clr.db,7,1,'center');x+=cW[4];
             
             const pW=cW[5]+cW[6]+cW[7];
             dc(x,sY,pW,hH/2,'PETAK',clr.p,clr.db,10,1,'center');
