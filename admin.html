@@ -429,12 +429,12 @@ doc.addFont(
         let ty = y + h / 2 + s / 3;
 
         if (rot === 90) {
-		let tx = x + (w / 2) + (s / 4); 
-   	 	let ty = y + (h / 2);
-
-		doc.text(String(t), tx, ty, { align: 'center', angle: 90 });
-    		return;
-        }
+		let tx = x + 5; 
+  		let ty = y + (h / 2);
+    
+  		doc.text(String(t), tx, ty, { align: 'center', angle: 90 });
+   		return;
+}
 
         if (Array.isArray(t)) {
             const lh = s * 0.4, sty = y + h / 2 - ((t.length - 1) * lh / 2);
@@ -449,7 +449,7 @@ doc.addFont(
             dc(x,sY,cW[0],hH,'R.BR.',null,[0,0,0],10,1,'center');x+=cW[0];
             dc(x,sY,cW[1],hH,'PREZIME',null,[0,0,0],10,1,'center');x+=cW[1];
             dc(x,sY,cW[2],hH,'IME',null,[0,0,0],10,1,'center');x+=cW[2];
-            dc(x, sY, cW[3], hH, 'NEDOSTAJE', [255, 255, 224], [0,0,0], 8, 1, 'center', 90); x += cW[3];
+            dc(x, sY, cW[3], hH, 'NEDOSTAJE', [255, 255, 224], [0,0,0], 8, 1, 'center', 90);x+=cW[3];
             dc(x,sY,cW[4],hH,['OSTAJE','- razlog'],null,clr.db,7,1,'center');x+=cW[4];
             
             const pW=cW[5]+cW[6]+cW[7];
