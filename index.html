@@ -709,6 +709,7 @@
         window.addEventListener('load', () => {
             initializeGoogleSignIn();
             setupIdemPrijePetkaLogic();
+            setupOstajemCijeliVikendLogic();
         });
 
         // Handle IDEM PRIJE PETKA logic
@@ -768,6 +769,58 @@
             
             // Initialize on page load
             updateSections();
+        }
+
+        // Handle OSTAJEM CIJELI VIKEND logic
+        function setupOstajemCijeliVikendLogic() {
+            const ostajemSelect = document.querySelector('select[name="ostajem_cijeli_vikend"]');
+            const idemPrijePetkaSelect = document.querySelector('select[name="idem_prije_petka"]');
+            const idemPrijePetkaGroup = idemPrijePetkaSelect.closest('.form-group');
+            
+            const petakVrijemeSelect = document.querySelector('select[name="petak_vrijeme_odlaska"]');
+            const petakVrijemeGroup = petakVrijemeSelect.closest('.form-group');
+            
+            const subotaVrijemeSelect = document.querySelector('select[name="subota_vrijeme_odlaska"]');
+            const subotaVrijemeGroup = subotaVrijemeSelect.closest('.form-group');
+            
+            function updateFields() {
+                const isOstajem = ostajemSelect.value === 'DA';
+                
+                if (isOstajem) {
+                    // Disable IDEM PRIJE PETKA
+                    idemPrijePetkaSelect.disabled = true;
+                    idemPrijePetkaSelect.value = '-';
+                    idemPrijePetkaGroup.style.opacity = '0.5';
+                    
+                    // Disable PETAK VRIJEME ODLASKA
+                    petakVrijemeSelect.disabled = true;
+                    petakVrijemeSelect.value = '-';
+                    petakVrijemeGroup.style.opacity = '0.5';
+                    
+                    // Disable SUBOTA VRIJEME ODLASKA
+                    subotaVrijemeSelect.disabled = true;
+                    subotaVrijemeSelect.value = '-';
+                    subotaVrijemeGroup.style.opacity = '0.5';
+                } else {
+                    // Enable IDEM PRIJE PETKA
+                    idemPrijePetkaSelect.disabled = false;
+                    idemPrijePetkaGroup.style.opacity = '1';
+                    
+                    // Enable PETAK VRIJEME ODLASKA
+                    petakVrijemeSelect.disabled = false;
+                    petakVrijemeGroup.style.opacity = '1';
+                    
+                    // Enable SUBOTA VRIJEME ODLASKA
+                    subotaVrijemeSelect.disabled = false;
+                    subotaVrijemeGroup.style.opacity = '1';
+                }
+            }
+            
+            // Listen for changes
+            ostajemSelect.addEventListener('change', updateFields);
+            
+            // Initialize on page load
+            updateFields();
         }
     </script>
 </body>
