@@ -715,24 +715,28 @@
         function setupIdemPrijePetkaLogic() {
             const idemPrijePetkaSelect = document.querySelector('select[name="idem_prije_petka"]');
             
-            // Get all sections that should be disabled
-            const ostajemCijeliVikendGroup = document.querySelector('select[name="ostajem_cijeli_vikend"]').closest('.form-group');
-            const fridaySection = document.querySelector('.form-section.purple');
-            const saturdaySection = document.querySelectorAll('.form-section.cyan')[1]; // Second cyan section is Saturday
-            const sundaySection = document.querySelectorAll('.form-section.purple')[1]; // Second purple section is Sunday
+            // Get OSTAJEM CIJELI VIKEND (in same section, but should be disabled separately)
+            const ostajemSelect = document.querySelector('select[name="ostajem_cijeli_vikend"]');
+            const ostajemGroup = ostajemSelect.closest('.form-group');
             
-            // Get all selects in these sections
+            // Get the three day sections (Friday, Saturday, Sunday)
+            const allPurpleSections = document.querySelectorAll('.form-section.purple');
+            const allCyanSections = document.querySelectorAll('.form-section.cyan');
+            
+            const fridaySection = allPurpleSections[0];  // First purple = Friday
+            const saturdaySection = allCyanSections[2];  // Third cyan = Saturday
+            const sundaySection = allPurpleSections[1];  // Second purple = Sunday
+            
             const sectionsToDisable = [fridaySection, saturdaySection, sundaySection];
             
             function updateSections() {
                 const isPrijePetka = idemPrijePetkaSelect.value === 'DA';
                 
                 if (isPrijePetka) {
-                    // Disable OSTAJEM CIJELI VIKEND
-                    const ostajemSelect = document.querySelector('select[name="ostajem_cijeli_vikend"]');
+                    // Disable OSTAJEM CIJELI VIKEND only
                     ostajemSelect.disabled = true;
                     ostajemSelect.value = '-';
-                    ostajemCijeliVikendGroup.style.opacity = '0.5';
+                    ostajemGroup.style.opacity = '0.5';
                     
                     // Disable all Friday, Saturday, Sunday sections
                     sectionsToDisable.forEach(section => {
@@ -745,9 +749,8 @@
                     });
                 } else {
                     // Enable OSTAJEM CIJELI VIKEND
-                    const ostajemSelect = document.querySelector('select[name="ostajem_cijeli_vikend"]');
                     ostajemSelect.disabled = false;
-                    ostajemCijeliVikendGroup.style.opacity = '1';
+                    ostajemGroup.style.opacity = '1';
                     
                     // Enable all Friday, Saturday, Sunday sections
                     sectionsToDisable.forEach(section => {
