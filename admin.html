@@ -102,10 +102,23 @@
 <body>
     <div class="container">
         <div class="login-section" id="loginSection">
-            <h2>Admin Prijava</h2>
-            <p style="margin-bottom: 20px; color: #666;">Prijavite se s Google računom</p>
-            <button class="login-btn" id="googleLoginBtn">Prijavi se s Google računom</button>
-        </div>
+    <h2>Admin Prijava</h2>
+    <p style="margin-bottom: 20px; color: #666;">Prijavite se s Google računom</p>
+    
+    <div id="g_id_onload"
+         data-client_id="406542478341-9s7qehkmblkr3n0h1r78a0gq9dumv473.apps.googleusercontent.com"
+         data-callback="handleCredentialResponse"
+         data-auto_prompt="false">
+    </div>
+    <div class="g_id_signin" 
+         data-type="standard" 
+         data-size="large" 
+         data-theme="outline" 
+         data-text="signin_with" 
+         data-shape="pill" 
+         data-logo_alignment="left">
+    </div>
+</div>
 
         <div id="adminDashboard" class="hidden">
             <div class="header">
@@ -204,31 +217,48 @@ AAEAAAASAQAABAAgR0RFRqZDpEwAAAOQAAACWEdQT1NOLGgfAABalAAAWPxHU1VC+5TlMQAARJwAABX2
                 setTimeout(initializeGoogleSignIn, 1000);
                 return;
             }
-            google.accounts.id.initialize({
-                client_id: CONFIG.GOOGLE_CLIENT_ID,
-                callback: handleCredentialResponse
-            });
-            document.getElementById('googleLoginBtn').addEventListener('click', function() {
-                google.accounts.id.prompt();
-            });
-        }
+         
+      function handleCredentialResponse(response) {
+    const payload = decodeJwtResponse(response.credential);
+    const userEmail = payload.email;
 
-        function handleCredentialResponse(response) {
-            const payload = parseJwt(response.credential);
-            userInfo = { email: payload.email, name: payload.name, picture: payload.picture };
-            userToken = response.credential;
-            showAdminDashboard();
-        }
+function decodeJwtResponse(token) {
+    let base64Url = token.split('.')[1];
+    let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    let jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(jsonPayload);
+}
 
-        function parseJwt(token) {
-            const base64Url = token.split('.')[1];
-            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-            }).join(''));
-            return JSON.parse(jsonPayload);
-        }
+    
+    const authorizedAdmins = ['kristijankatic@gmail.com']; 
+    
+    if (authorizedAdmins.includes(userEmail)) {
+        userInfo = { email: payload.email, name: payload.name, picture: payload.picture };
+        userToken = response.credential;
+        
+        document.getElementById('loginSection').classList.add('hidden');
+        document.getElementById('adminDashboard').classList.remove('hidden');
+        
+        fetchData(); 
+    } else {
+        alert("Pristup odbijen! Email " + userEmail + " nije na listi admina.");
+        google.accounts.id.disableAutoSelect();
+    }
+}
 
+function decodeJwtResponse(token) {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(jsonPayload);
+}  
+        
+
+     
         function showAdminDashboard() {
             document.getElementById('loginSection').classList.add('hidden');
             document.getElementById('adminDashboard').classList.remove('hidden');
