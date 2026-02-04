@@ -238,6 +238,18 @@
             cursor: not-allowed;
         }
 
+        .form-select:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background-color: #f5f5f5;
+            color: #999;
+        }
+
+        .form-section.disabled {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
         .success-message {
             background: #4CAF50;
             color: white;
@@ -696,7 +708,64 @@
         // Initialize when page loads
         window.addEventListener('load', () => {
             initializeGoogleSignIn();
+            setupIdemPrijePetkaLogic();
         });
+
+        // Handle IDEM PRIJE PETKA logic
+        function setupIdemPrijePetkaLogic() {
+            const idemPrijePetkaSelect = document.querySelector('select[name="idem_prije_petka"]');
+            
+            // Get all sections that should be disabled
+            const ostajemCijeliVikendGroup = document.querySelector('select[name="ostajem_cijeli_vikend"]').closest('.form-group');
+            const fridaySection = document.querySelector('.form-section.purple');
+            const saturdaySection = document.querySelectorAll('.form-section.cyan')[1]; // Second cyan section is Saturday
+            const sundaySection = document.querySelectorAll('.form-section.purple')[1]; // Second purple section is Sunday
+            
+            // Get all selects in these sections
+            const sectionsToDisable = [fridaySection, saturdaySection, sundaySection];
+            
+            function updateSections() {
+                const isPrijePetka = idemPrijePetkaSelect.value === 'DA';
+                
+                if (isPrijePetka) {
+                    // Disable OSTAJEM CIJELI VIKEND
+                    const ostajemSelect = document.querySelector('select[name="ostajem_cijeli_vikend"]');
+                    ostajemSelect.disabled = true;
+                    ostajemSelect.value = '-';
+                    ostajemCijeliVikendGroup.style.opacity = '0.5';
+                    
+                    // Disable all Friday, Saturday, Sunday sections
+                    sectionsToDisable.forEach(section => {
+                        section.classList.add('disabled');
+                        const selects = section.querySelectorAll('select');
+                        selects.forEach(select => {
+                            select.disabled = true;
+                            select.value = '-';
+                        });
+                    });
+                } else {
+                    // Enable OSTAJEM CIJELI VIKEND
+                    const ostajemSelect = document.querySelector('select[name="ostajem_cijeli_vikend"]');
+                    ostajemSelect.disabled = false;
+                    ostajemCijeliVikendGroup.style.opacity = '1';
+                    
+                    // Enable all Friday, Saturday, Sunday sections
+                    sectionsToDisable.forEach(section => {
+                        section.classList.remove('disabled');
+                        const selects = section.querySelectorAll('select');
+                        selects.forEach(select => {
+                            select.disabled = false;
+                        });
+                    });
+                }
+            }
+            
+            // Listen for changes
+            idemPrijePetkaSelect.addEventListener('change', updateSections);
+            
+            // Initialize on page load
+            updateSections();
+        }
     </script>
 </body>
 </html>
