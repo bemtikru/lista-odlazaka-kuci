@@ -710,6 +710,8 @@
             initializeGoogleSignIn();
             setupIdemPrijePetkaLogic();
             setupOstajemCijeliVikendLogic();
+            setupPetakVrijemeOdlaskaLogic();
+            setupSubotaVrijemeOdlaskaLogic();
         });
 
         // Handle IDEM PRIJE PETKA logic
@@ -818,6 +820,152 @@
             
             // Listen for changes
             ostajemSelect.addEventListener('change', updateFields);
+            
+            // Initialize on page load
+            updateFields();
+        }
+
+        // Handle PETAK VRIJEME ODLASKA logic
+        function setupPetakVrijemeOdlaskaLogic() {
+            const petakVrijemeSelect = document.querySelector('select[name="petak_vrijeme_odlaska"]');
+            const idemPrijePetkaSelect = document.querySelector('select[name="idem_prije_petka"]');
+            const idemPrijePetkaGroup = idemPrijePetkaSelect.closest('.form-group');
+            
+            const ostajemSelect = document.querySelector('select[name="ostajem_cijeli_vikend"]');
+            const ostajemGroup = ostajemSelect.closest('.form-group');
+            
+            const allPurpleSections = document.querySelectorAll('.form-section.purple');
+            const allCyanSections = document.querySelectorAll('.form-section.cyan');
+            
+            const saturdaySection = allCyanSections[2];  // Third cyan = Saturday
+            const sundaySection = allPurpleSections[1];  // Second purple = Sunday
+            
+            function updateFields() {
+                const hasTime = petakVrijemeSelect.value !== '-';
+                
+                if (hasTime) {
+                    // Disable IDEM PRIJE PETKA
+                    idemPrijePetkaSelect.disabled = true;
+                    idemPrijePetkaSelect.value = '-';
+                    idemPrijePetkaGroup.style.opacity = '0.5';
+                    
+                    // Disable OSTAJEM CIJELI VIKEND
+                    ostajemSelect.disabled = true;
+                    ostajemSelect.value = '-';
+                    ostajemGroup.style.opacity = '0.5';
+                    
+                    // Disable complete Saturday section
+                    saturdaySection.classList.add('disabled');
+                    const saturdaySelects = saturdaySection.querySelectorAll('select');
+                    saturdaySelects.forEach(select => {
+                        select.disabled = true;
+                        select.value = '-';
+                    });
+                    
+                    // Disable complete Sunday section
+                    sundaySection.classList.add('disabled');
+                    const sundaySelects = sundaySection.querySelectorAll('select');
+                    sundaySelects.forEach(select => {
+                        select.disabled = true;
+                        select.value = '-';
+                    });
+                } else {
+                    // Enable IDEM PRIJE PETKA
+                    idemPrijePetkaSelect.disabled = false;
+                    idemPrijePetkaGroup.style.opacity = '1';
+                    
+                    // Enable OSTAJEM CIJELI VIKEND
+                    ostajemSelect.disabled = false;
+                    ostajemGroup.style.opacity = '1';
+                    
+                    // Enable Saturday section
+                    saturdaySection.classList.remove('disabled');
+                    const saturdaySelects = saturdaySection.querySelectorAll('select');
+                    saturdaySelects.forEach(select => {
+                        select.disabled = false;
+                    });
+                    
+                    // Enable Sunday section
+                    sundaySection.classList.remove('disabled');
+                    const sundaySelects = sundaySection.querySelectorAll('select');
+                    sundaySelects.forEach(select => {
+                        select.disabled = false;
+                    });
+                }
+            }
+            
+            // Listen for changes
+            petakVrijemeSelect.addEventListener('change', updateFields);
+            
+            // Initialize on page load
+            updateFields();
+        }
+
+        // Handle SUBOTA VRIJEME ODLASKA logic
+        function setupSubotaVrijemeOdlaskaLogic() {
+            const subotaVrijemeSelect = document.querySelector('select[name="subota_vrijeme_odlaska"]');
+            const idemPrijePetkaSelect = document.querySelector('select[name="idem_prije_petka"]');
+            const idemPrijePetkaGroup = idemPrijePetkaSelect.closest('.form-group');
+            
+            const ostajemSelect = document.querySelector('select[name="ostajem_cijeli_vikend"]');
+            const ostajemGroup = ostajemSelect.closest('.form-group');
+            
+            const petakVrijemeSelect = document.querySelector('select[name="petak_vrijeme_odlaska"]');
+            const petakVrijemeGroup = petakVrijemeSelect.closest('.form-group');
+            
+            const allPurpleSections = document.querySelectorAll('.form-section.purple');
+            const sundaySection = allPurpleSections[1];  // Second purple = Sunday
+            
+            function updateFields() {
+                const hasTime = subotaVrijemeSelect.value !== '-';
+                
+                if (hasTime) {
+                    // Disable IDEM PRIJE PETKA
+                    idemPrijePetkaSelect.disabled = true;
+                    idemPrijePetkaSelect.value = '-';
+                    idemPrijePetkaGroup.style.opacity = '0.5';
+                    
+                    // Disable OSTAJEM CIJELI VIKEND
+                    ostajemSelect.disabled = true;
+                    ostajemSelect.value = '-';
+                    ostajemGroup.style.opacity = '0.5';
+                    
+                    // Disable PETAK VRIJEME ODLASKA only (not RUČAK/VEČERA)
+                    petakVrijemeSelect.disabled = true;
+                    petakVrijemeSelect.value = '-';
+                    petakVrijemeGroup.style.opacity = '0.5';
+                    
+                    // Disable complete Sunday section
+                    sundaySection.classList.add('disabled');
+                    const sundaySelects = sundaySection.querySelectorAll('select');
+                    sundaySelects.forEach(select => {
+                        select.disabled = true;
+                        select.value = '-';
+                    });
+                } else {
+                    // Enable IDEM PRIJE PETKA
+                    idemPrijePetkaSelect.disabled = false;
+                    idemPrijePetkaGroup.style.opacity = '1';
+                    
+                    // Enable OSTAJEM CIJELI VIKEND
+                    ostajemSelect.disabled = false;
+                    ostajemGroup.style.opacity = '1';
+                    
+                    // Enable PETAK VRIJEME ODLASKA
+                    petakVrijemeSelect.disabled = false;
+                    petakVrijemeGroup.style.opacity = '1';
+                    
+                    // Enable Sunday section
+                    sundaySection.classList.remove('disabled');
+                    const sundaySelects = sundaySection.querySelectorAll('select');
+                    sundaySelects.forEach(select => {
+                        select.disabled = false;
+                    });
+                }
+            }
+            
+            // Listen for changes
+            subotaVrijemeSelect.addEventListener('change', updateFields);
             
             // Initialize on page load
             updateFields();
