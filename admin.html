@@ -531,16 +531,18 @@ weekRows.forEach(function(r) {
             const uY=sY+hH+(22*rH);
             x=sX;
             const tot = { ne: 0, os: 0, pR: 0, pV: 0, sR: 0, sV: 0, nR: 0, nV: 0 };
-            weekRows.forEach(function(r){
-                if(!r)return;
-		if(r[4]==='DA')tot.ne++;
-                if(r[5]==='DA')tot.os++;
-                if(r[7]==='DA')tot.pR++;
-                if(r[8]==='DA')tot.pV++;
-                if(r[10]==='DA')tot.sR++;
-                if(r[11]==='DA')tot.sV++;
-                if(r[12]==='DA')tot.nR++;
-                if(r[13]==='DA')tot.nV++;
+            
+            // Calculate totals from dataMap (deduplicated data) instead of weekRows (raw data with duplicates)
+            Object.keys(dataMap).forEach(function(personName){
+                const d = dataMap[personName];
+                if(d.ne==='DA')tot.ne++;
+                if(d.os==='DA')tot.os++;
+                if(d.pR==='DA')tot.pR++;
+                if(d.pV==='DA')tot.pV++;
+                if(d.sR==='DA')tot.sR++;
+                if(d.sV==='DA')tot.sV++;
+                if(d.nR==='DA')tot.nR++;
+                if(d.nV==='DA')tot.nV++;
             });
 
             dc(x,uY,cW[0],rH,'',null,[0,0,0],10,0,'center');x+=cW[0];
