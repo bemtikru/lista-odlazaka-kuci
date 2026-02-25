@@ -638,13 +638,38 @@
                 return;
             }
             
+            // Validate that at least one meaningful field is filled
+            const formData = new FormData(e.target);
+            const idemPrijePetka = formData.get('idem_prije_petka');
+            const ostajemCijeliVikend = formData.get('ostajem_cijeli_vikend');
+            const petakVrijeme = formData.get('petak_vrijeme_odlaska');
+            const subotaVrijeme = formData.get('subota_vrijeme_odlaska');
+            
+            // Check if at least one of these conditions is met:
+            // 1. IDEM PRIJE PETKA = DA
+            // 2. OSTAJEM CIJELI VIKEND = DA
+            // 3. Any time is selected (not "-")
+            const hasValidEntry = 
+                idemPrijePetka === 'DA' || 
+                ostajemCijeliVikend === 'DA' || 
+                (petakVrijeme && petakVrijeme !== '-') || 
+                (subotaVrijeme && subotaVrijeme !== '-');
+            
+            if (!hasValidEntry) {
+                errorMsg.textContent = 'Molimo ispunite barem jedno polje: odaberite vrijeme odlaska, ili označite "IDEM PRIJE PETKA" ili "OSTAJEM CIJELI VIKEND" sa DA.';
+                errorMsg.classList.add('show');
+                setTimeout(() => {
+                    errorMsg.classList.remove('show');
+                }, 5000); // Longer timeout for longer message
+                return;
+            }
+            
             submitBtn.disabled = true;
             submitBtn.textContent = 'Šaljem...';
             successMsg.classList.remove('show');
             errorMsg.classList.remove('show');
 
             try {
-                const formData = new FormData(e.target);
                 const data = {
                     timestamp: new Date().toISOString(),
                     week: getCurrentWeek(),
