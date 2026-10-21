@@ -352,7 +352,7 @@
                         <option value="Rahan Gabriel">Rahan Gabriel</option>
                         <option value="Rendulić Noa Izak">Rendulić Noa Izak</option>
                         <option value="Sabljak Marko">Sabljak Marko</option>
-                        <option value="Šarić Marko">Šarić Marko</option>
+                        <option value="Štemberger Fran">Štemberger Fran</option>
                         <option value="Tokić Gabriel">Tokić Gabriel</option>
                         <option value="Tomičić Karlo">Tomičić Karlo</option>
                         <option value="Turk Niko">Turk Niko</option>
@@ -730,6 +730,46 @@
                 throw new Error('Failed to submit data');
             }
         }
+
+        // Load the list of names from the Google Sheet ("Imena" tab).
+        // The options already in the HTML act as a fallback if loading fails.
+        async function loadStudentNames() {
+            const select = document.getElementById('imePrezime');
+            if (!select) return;
+            try {
+                const controller = new AbortController();
+                const timer = setTimeout(() => controller.abort(), 10000);
+                const response = await fetch(CONFIG.WEBHOOK_URL + '?action=names', { signal: controller.signal });
+                clearTimeout(timer);
+                const result = await response.json();
+                if (!result.success || !Array.isArray(result.names) || result.names.length === 0) {
+                    throw new Error(result.error || 'Prazan popis');
+                }
+
+                const collator = new Intl.Collator('hr');
+                const names = result.names
+                    .map(n => ({ p: String(n.p), i: String(n.i) }))
+                    .sort((a, b) => collator.compare(a.p, b.p) || collator.compare(a.i, b.i));
+
+                const previous = select.value;
+                select.innerHTML = '';
+                const dash = document.createElement('option');
+                dash.value = '-';
+                dash.textContent = '-';
+                select.appendChild(dash);
+                names.forEach(n => {
+                    const full = n.p + ' ' + n.i;
+                    const opt = document.createElement('option');
+                    opt.value = full;
+                    opt.textContent = full;
+                    select.appendChild(opt);
+                });
+                select.value = Array.from(select.options).some(o => o.value === previous) ? previous : '-';
+            } catch (error) {
+                console.warn('Popis imena nije učitan, koristi se ugrađeni popis:', error);
+            }
+        }
+        window.addEventListener('load', loadStudentNames);
 
         // Initialize when page loads
         window.addEventListener('load', () => {
