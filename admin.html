@@ -117,7 +117,7 @@
             font-size: 14px;
         }
         .names-add input:focus { outline: none; border-color: #667eea; }
-        .names-add button:disabled, .name-remove:disabled { opacity: 0.5; cursor: not-allowed; }
+        .names-add button:disabled, .name-remove:disabled, .name-edit:disabled, .name-save:disabled { opacity: 0.5; cursor: not-allowed; }
         .names-status { min-height: 20px; font-size: 14px; margin-bottom: 10px; color: #2e7d32; }
         .names-status.error { color: #c62828; }
         .names-list { max-height: 420px; overflow-y: auto; border-top: 1px solid #e0e0e0; }
@@ -143,6 +143,40 @@
             cursor: pointer;
         }
         .name-remove:hover:not(:disabled) { background: #c62828; color: white; }
+        .name-actions { display: flex; gap: 8px; justify-content: flex-end; }
+        .name-edit {
+            background: white;
+            color: #667eea;
+            border: 1px solid #667eea;
+            border-radius: 20px;
+            padding: 5px 14px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .name-edit:hover:not(:disabled) { background: #667eea; color: white; }
+        .name-save {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .name-row input {
+            width: 100%;
+            min-width: 0;
+            padding: 6px 10px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .name-row input:focus { outline: none; border-color: #764ba2; }
+        @media (max-width: 600px) {
+            .name-row { grid-template-columns: 30px 1fr 1fr; }
+            .name-actions { grid-column: 1 / -1; }
+        }
         .hidden { display: none; }
         @media (max-width: 768px) {
             .header-controls { flex-direction: column; align-items: stretch; }
@@ -504,9 +538,31 @@ function decodeJwtResponse(token) {
             el.className = 'names-status' + (isError ? ' error' : '');
         }
 
+        let editing = null;   // {p, i, np, ni, fresh} dok se uređuje jedan redak
+
+        function makeButton(cls, text, onClick, disabled) {
+            const b = document.createElement('button');
+            b.className = cls;
+            b.textContent = text;
+            b.disabled = !!disabled;
+            b.addEventListener('click', onClick);
+            return b;
+        }
+
+        function makeEditInput(value, onInput) {
+            const el = document.createElement('input');
+            el.type = 'text';
+            el.maxLength = 40;
+            el.value = value;
+            el.autocomplete = 'off';
+            el.addEventListener('input', function() { onInput(el.value); });
+            return el;
+        }
+
         function renderNames() {
             const list = document.getElementById('namesList');
             const people = getPeopleForPdf();
+            let focusEl = null;
             list.innerHTML = '';
             document.getElementById('namesCount').textContent = '(' + people.length + ')';
             people.forEach(function(pe) {
@@ -515,19 +571,47 @@ function decodeJwtResponse(token) {
                 const num = document.createElement('span');
                 num.className = 'num';
                 num.textContent = pe.n + '.';
-                const p = document.createElement('span');
-                p.textContent = pe.p;
-                const i = document.createElement('span');
-                i.textContent = pe.i;
-                const btn = document.createElement('button');
-                btn.className = 'name-remove';
-                btn.textContent = 'Ukloni';
-                btn.disabled = !namesFromSheet;
-                btn.addEventListener('click', function() { removeName(pe.p, pe.i, btn); });
-                row.appendChild(num); row.appendChild(p); row.appendChild(i); row.appendChild(btn);
+                row.appendChild(num);
+                const actions = document.createElement('div');
+                actions.className = 'name-actions';
+
+                if (editing && editing.p === pe.p && editing.i === pe.i) {
+                    const pIn = makeEditInput(editing.np, function(v) { editing.np = v; });
+                    const iIn = makeEditInput(editing.ni, function(v) { editing.ni = v; });
+                    const save = makeButton('name-save', 'Spremi', function() { saveEdit(save); }, false);
+                    const cancel = makeButton('name-edit', 'Odustani', function() { editing = null; renderNames(); }, false);
+                    [pIn, iIn].forEach(function(inp) {
+                        inp.addEventListener('keydown', function(e) {
+                            if (e.key === 'Enter') save.click();
+                            if (e.key === 'Escape') cancel.click();
+                        });
+                    });
+                    row.appendChild(pIn);
+                    row.appendChild(iIn);
+                    actions.appendChild(save);
+                    actions.appendChild(cancel);
+                    if (editing.fresh) { focusEl = pIn; editing.fresh = false; }
+                } else {
+                    const p = document.createElement('span');
+                    p.textContent = pe.p;
+                    const i = document.createElement('span');
+                    i.textContent = pe.i;
+                    row.appendChild(p);
+                    row.appendChild(i);
+                    const editBtn = makeButton('name-edit', 'Uredi', function() {
+                        editing = { p: pe.p, i: pe.i, np: pe.p, ni: pe.i, fresh: true };
+                        setNamesStatus('', false);
+                        renderNames();
+                    }, !namesFromSheet);
+                    const removeBtn = makeButton('name-remove', 'Ukloni', function() { removeName(pe.p, pe.i, removeBtn); }, !namesFromSheet);
+                    actions.appendChild(editBtn);
+                    actions.appendChild(removeBtn);
+                }
+                row.appendChild(actions);
                 list.appendChild(row);
             });
             document.getElementById('addNameBtn').disabled = !namesFromSheet;
+            if (focusEl) { focusEl.focus(); focusEl.select(); }
         }
 
         // Nikad ne baca grešku - u slučaju neuspjeha ostaje prethodni (ili ugrađeni) popis
@@ -549,14 +633,14 @@ function decodeJwtResponse(token) {
             renderNames();
         }
 
-        async function nameAction(action, prezime, ime) {
+        async function nameAction(action, prezime, ime, extra) {
             if (!userToken) throw new Error('Prijavite se ponovno.');
             let result;
             try {
                 const response = await fetch(CONFIG.WEBHOOK_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: action, token: userToken, prezime: prezime, ime: ime })
+                    body: JSON.stringify(Object.assign({ action: action, token: userToken, prezime: prezime, ime: ime }, extra || {}))
                 });
                 result = await response.json();
             } catch (error) {
@@ -566,6 +650,28 @@ function decodeJwtResponse(token) {
             namesList = normalizeNames(result.names);
             namesFromSheet = true;
             renderNames();
+            return result;
+        }
+
+        async function saveEdit(btn) {
+            if (!editing) return;
+            const np = editing.np.replace(/\s+/g, ' ').trim();
+            const ni = editing.ni.replace(/\s+/g, ' ').trim();
+            if (!np || !ni) { setNamesStatus('Unesite prezime i ime.', true); return; }
+            if (np === editing.p && ni === editing.i) { editing = null; renderNames(); return; }
+            if (!confirm('Promijeniti "' + editing.p + ' ' + editing.i + '" u "' + np + ' ' + ni + '"?\n\nPostojeće prijave ove osobe u tablici dobit će novo ime (da se ispravno prikazuju u PDF-u).')) return;
+            const oldP = editing.p, oldI = editing.i;
+            btn.disabled = true;
+            try {
+                const result = await nameAction('editName', oldP, oldI, { newPrezime: np, newIme: ni });
+                editing = null;
+                renderNames();
+                const n = result.updatedSubmissions || 0;
+                setNamesStatus('Uređeno: ' + oldP + ' ' + oldI + ' → ' + np + ' ' + ni + (n ? ' (ažurirano prijava: ' + n + ')' : ''), false);
+            } catch (error) {
+                setNamesStatus(error.message, true);
+                btn.disabled = false;
+            }
         }
 
         async function removeName(prezime, ime, btn) {
