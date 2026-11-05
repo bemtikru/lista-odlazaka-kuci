@@ -8,7 +8,9 @@ File name: `odlazak-kuci-os<GROUP>-<WEEK>.pdf`, e.g. `odlazak-kuci-os3-2026-W45.
 ## Page
 
 - A4 portrait (210 × 297 mm), font **Roboto Condensed** (Regular + Bold, embedded in `admin.html`)
-- Title: `<N>. ODGOJNA SKUPINA` (16 pt, centred, y = 25 mm), below it `ODLAZAK KUĆI ______________` (y = 33 mm)
+- Title: `<N>. ODGOJNA SKUPINA` (16 pt, centred, y = 25 mm), below it `ODLAZAK KUĆI <Friday>-<Sunday>` (y = 33 mm),
+  e.g. `ODLAZAK KUĆI 6.11.-8.11.2026.` – the dates of that ISO week, `d.m.-d.m.yyyy.` without leading zeros.
+  A weekend that spans two years shows both: `31.12.2027.-2.1.2028.`
 - Table starts at x = 15 mm, y = 40 mm; hairline borders (0.1 mm)
 
 ## Columns (13, in mm)
@@ -63,6 +65,6 @@ Total width ≈ 187 mm.
 ## Which submissions count
 
 - Only the **current week** and the **selected group**.
-- If a person submitted several times, **only the last submission** is used – both in the row and in `UKUPNO`.
+- If a person submitted several times, **only the latest submission (by Timestamp, not by row position in the sheet)** is used – in the row, in `UKUPNO`, and in the dashboard's summary cards.
 - `UKUPNO` counts only people who are on the group's list (a removed name is not counted).
 - A name on the list with no submission still gets a row (with `:` in the time columns).

@@ -2,7 +2,7 @@
 
 Web application for weekly "going home" sign-ups in student dormitory groups (**odgojne skupine**).
 Students pick their name and enter their weekend departure times and meals. Admins see the
-submissions, export CSV, and print the weekly PDF list. Each group (1.–7.) has its own link,
+submissions and statistics, and print the weekly PDF list. Each group (1.–7.) has its own link,
 its own list of names, and its own PDF.
 
 Everything is in Croatian in the user interface.
@@ -38,7 +38,7 @@ without `?skupina=` opens the last group you used (or `DEFAULT_GROUP` from `conf
 | File | Purpose |
 |---|---|
 | `index.html` | Student form (Google login, group-specific names, conditional dropdown rules) |
-| `admin.html` | Admin page: weekly table, summary, CSV export, PDF, names management |
+| `admin.html` | Admin page: weekly table, statistics, PDF, names management |
 | `config.js` | Shared settings: Client ID, webhook URL, number of groups |
 | `Code.gs` | Apps Script – **paste into the script editor, not deployed to Netlify** |
 | `_redirects` | Netlify rule: `/admin` → `admin.html` |
@@ -50,7 +50,7 @@ without `?skupina=` opens the last group you used (or `DEFAULT_GROUP` from `conf
 
 | Tab | Columns | Notes |
 |---|---|---|
-| `Sheet1` | A Timestamp · B Week · C Email · D Ime i Prezime · E Idem prije petka · F Ostajem cijeli vikend · G–I Petak (vrijeme, ručak, večera) · J–L Subota · M–N Nedjelja (ručak, večera) · **O Skupina** | One row per submission; the **last** submission of a person in a week counts |
+| `Sheet1` | A Timestamp · B Week · C Email · D Ime i Prezime · E Idem prije petka · F Ostajem cijeli vikend · G–I Petak (vrijeme, ručak, večera) · J–L Subota · M–N Nedjelja (ručak, večera) · **O Skupina** | One row per submission; for each person the **latest by Timestamp** counts (so sorting the sheet does not matter). If you sort or filter, include **column O** in the range, or use *Data → Filter views* |
 | `Imena` | A Prezime · B Ime · C Skupina | The names shown in each group's drop-down and on the PDF |
 | `Admini` | A Email · B Skupine | `*` = all groups, or e.g. `3` or `3,5` |
 
@@ -60,7 +60,13 @@ Weeks are ISO weeks (Monday–Sunday), labelled like `2026-W45`; a new week star
 ## What admins can do
 
 - See the current week's submissions for a group, with live summary counts
-- Export the week as **CSV** and print the **PDF** list (heading and file name carry the group number)
+- Print the weekly **PDF** list (the heading carries the group number and the Friday–Sunday dates, e.g.
+  `ODLAZAK KUĆI 6.11.-8.11.2026.`; the file name carries the group)
+- See live statistics for the week, counted from each person's **latest** submission:
+  - **Ukupno prijava** – `x/y`: members who have submitted / members on the list
+  - **Ukupno promjena** – how many submissions replaced an earlier one by the same person
+  - meal counters for Friday, Saturday and Sunday
+  - **Nedostaje prijava** – how many members have not submitted yet, with their names
 - **Add, edit (Uredi) and remove names** of the group, including *Dodaj više imena odjednom*
   (paste one `Prezime Ime` per line; use a comma for double surnames: `Marić Kovač, Ana Maria`)
 - Editing a name also renames that person's existing submissions in the same group, so this week's

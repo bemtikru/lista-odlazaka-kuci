@@ -34,7 +34,7 @@ Do the steps **in this order**, and do step 8 last.
    stored as group 7), but the *old* admin page can no longer edit names.
 6. **Test.**
    - `https://YOUR-SITE/?skupina=7` → the 22 names appear in the drop-down.
-   - `https://YOUR-SITE/admin?skupina=7` → sign in with Google → table, names panel, CSV and PDF work.
+   - `https://YOUR-SITE/admin?skupina=7` → sign in with Google → table, statistics, names panel and PDF work.
    - Send one test submission and delete the test row in `Sheet1` afterwards.
 7. **Give out the links** (see `README.md`). Tell group 7 to use `…/?skupina=7` – the old bare link
    now shows a group chooser.
