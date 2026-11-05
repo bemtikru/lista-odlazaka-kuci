@@ -177,6 +177,30 @@
             .name-row { grid-template-columns: 30px 1fr 1fr; }
             .name-actions { grid-column: 1 / -1; }
         }
+        .group-select {
+            padding: 8px 14px;
+            border: 2px solid #667eea;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #667eea;
+            background: white;
+            cursor: pointer;
+        }
+        .login-error { color: #c62828; font-size: 14px; margin-top: 15px; min-height: 18px; }
+        .names-panel .names-bulk { margin: 10px 0 15px; }
+        .names-panel .names-bulk summary { cursor: pointer; color: #667eea; font-size: 14px; font-weight: 600; padding: 6px 0; }
+        .names-bulk textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            margin: 8px 0;
+        }
+        .names-bulk textarea:focus { outline: none; border-color: #667eea; }
+        .names-bulk button:disabled { opacity: 0.5; cursor: not-allowed; }
         .hidden { display: none; }
         @media (max-width: 768px) {
             .header-controls { flex-direction: column; align-items: stretch; }
@@ -190,25 +214,15 @@
     <h2>Admin Prijava</h2>
     <p style="margin-bottom: 20px; color: #666;">Prijavite se s Google računom</p>
     
-    <div id="g_id_onload"
-         data-client_id="406542478341-9s7qehkmblkr3n0h1r78a0gq9dumv473.apps.googleusercontent.com"
-         data-callback="handleCredentialResponse"
-         data-auto_prompt="false">
-    </div>
-    <div class="g_id_signin" 
-         data-type="standard" 
-         data-size="large" 
-         data-theme="outline" 
-         data-text="signin_with" 
-         data-shape="pill" 
-         data-logo_alignment="left">
-    </div>
+    <div id="googleSignInBtn" style="display:inline-block;"></div>
+    <div class="login-error" id="loginError"></div>
 </div>
 
         <div id="adminDashboard" class="hidden">
             <div class="header">
-                <h1>Lista odlazaka kući - Admin</h1>
+                <h1 id="adminTitle">Lista odlazaka kući - Admin</h1>
                 <div class="header-controls">
+                    <select id="groupSelect" class="group-select" title="Odgojna skupina"></select>
                     <span class="week-display" id="weekDisplay"></span>
                     <button class="refresh-btn" id="refreshBtn">🔄 Osvježi</button>
                     <button class="export-btn" id="exportBtn">📥 Izvezi CSV</button>
@@ -257,6 +271,12 @@
                         <input type="text" id="newIme" placeholder="Ime" maxlength="40" autocomplete="off">
                         <button class="refresh-btn" id="addNameBtn">➕ Dodaj</button>
                     </div>
+                    <details class="names-bulk">
+                        <summary>Dodaj više imena odjednom</summary>
+                        <textarea id="bulkNames" rows="6" placeholder="Jedan red po osobi, npr.&#10;Horvat Ivan&#10;Marić Kovač, Ana Maria"></textarea>
+                        <p class="names-hint">Prvi dio retka je prezime, ostalo je ime. Za dvostruka prezimena upotrijebite zarez ("Marić Kovač, Ana Maria"). Možete zalijepiti i dva stupca iz tablice.</p>
+                        <button class="refresh-btn" id="bulkAddBtn">➕ Dodaj sve</button>
+                    </details>
                     <div class="names-status" id="namesStatus"></div>
                     <div class="names-list" id="namesList"></div>
                 </div>
@@ -291,6 +311,7 @@
 
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="config.js"></script>
     <script>
 
 const RobotoCondensedRegularBase64 = `
@@ -302,85 +323,171 @@ AAEAAAASAQAABAAgR0RFRqZDpEwAAAOQAAACWEdQT1NOLGgfAABalAAAWPxHU1VC+5TlMQAARJwAABX2
 `;
 
 
-        const CONFIG = {
-            GOOGLE_CLIENT_ID: '406542478341-9s7qehkmblkr3n0h1r78a0gq9dumv473.apps.googleusercontent.com',
-            SPREADSHEET_ID: '1KMcCZZ9BnyFerFsolGxOu6F2h7Gt3fC8KWK-sxDBN4k',
-            API_KEY: 'AIzaSyC9n2zz4kgXvoMnpJpr70T_l13KRjG1lqI',
-            WEBHOOK_URL: 'https://script.google.com/macros/s/AKfycbwKA9VBT_fM0Rn9yNLpMHyotQcg8CVl4mfnXKVyf8RX3Gev4yyfzb2pXCPYzHUHW6V4hA/exec'
-        };
+        const CONFIG = window.APP_CONFIG;
+        const SESSION_KEY = 'odlasci_admin_session';
+        const GROUP_KEY = 'odlasci_admin_group';
 
-        let userToken = null;
-        let userInfo = null;
+        let session = null;       // {token, email, name, groups, expires}
+        let currentGroup = null;  // odgojna skupina koju admin trenutno gleda
+        let loadSeq = 0;          // zaštita od zastarjelih odgovora kad se skupina promijeni
+
+        function storageGet(key) { try { return window.sessionStorage.getItem(key); } catch (e) { return null; } }
+        function storageSet(key, value) { try { window.sessionStorage.setItem(key, value); } catch (e) {} }
+        function storageRemove(key) { try { window.sessionStorage.removeItem(key); } catch (e) {} }
+
+        function getUrlGroup() {
+            const n = parseInt(new URLSearchParams(location.search).get('skupina'), 10);
+            return (n >= 1 && n <= CONFIG.GROUP_COUNT) ? n : null;
+        }
+
+        function setLoginError(text) {
+            const el = document.getElementById('loginError');
+            if (el) el.textContent = text || '';
+        }
+
+        // Svi pozivi prema skripti (osim javnog popisa imena) idu ovuda; sesija se šalje sama.
+        async function api(action, payload) {
+            let result;
+            try {
+                const response = await fetch(CONFIG.WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(Object.assign({ action: action, session: session ? session.token : undefined }, payload || {}))
+                });
+                result = await response.json();
+            } catch (error) {
+                throw new Error('Greška u komunikaciji s poslužiteljem. Pokušajte ponovno.');
+            }
+            if (!result.success) {
+                if (result.code === 'SESSION') endSession(result.error);
+                throw new Error(result.error || 'Radnja nije uspjela.');
+            }
+            return result;
+        }
 
         function initializeGoogleSignIn() {
             if (typeof google === 'undefined' || !google.accounts) {
-                setTimeout(initializeGoogleSignIn, 1000);
+                setTimeout(initializeGoogleSignIn, 500);
                 return;
             }
-            
             google.accounts.id.initialize({
                 client_id: CONFIG.GOOGLE_CLIENT_ID,
-                callback: handleCredentialResponse
+                callback: handleCredentialResponse,
+                auto_select: false
             });
-            
-            document.getElementById('googleLoginBtn').addEventListener('click', function() {
-                google.accounts.id.prompt();
-            });
+            google.accounts.id.renderButton(document.getElementById('googleSignInBtn'),
+                { theme: 'outline', size: 'large', shape: 'pill', text: 'signin_with', locale: 'hr' });
         }
-         
-        function handleCredentialResponse(response) {
-    const payload = decodeJwtResponse(response.credential);
-    const userEmail = payload.email;
 
-function decodeJwtResponse(token) {
-    let base64Url = token.split('.')[1];
-    let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    let jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-    return JSON.parse(jsonPayload);
-}
+        // Google prijava -> skripta provjerava račun i vraća vlastitu sesiju (vrijedi 12 sati)
+        async function handleCredentialResponse(response) {
+            setLoginError('');
+            try {
+                const result = await api('login', { credential: response.credential });
+                startSession(result);
+            } catch (error) {
+                setLoginError(error.message);
+                try { google.accounts.id.disableAutoSelect(); } catch (e) {}
+            }
+        }
 
-    
-    const authorizedAdmins = ['kristijankatic@gmail.com']; 
-    
-    if (authorizedAdmins.includes(userEmail)) {
-        userInfo = { email: payload.email, name: payload.name, picture: payload.picture };
-        userToken = response.credential;
-        
-        document.getElementById('loginSection').classList.add('hidden');
-        document.getElementById('adminDashboard').classList.remove('hidden');
-        
-        updateWeekDisplay();
-        loadData();
-        loadNames();
-    } else {
-        alert("Pristup odbijen! Email " + userEmail + " nije na listi admina.");
-        google.accounts.id.disableAutoSelect();
-    }
-}  
+        function startSession(result) {
+            session = { token: result.session, email: result.email, name: result.name, groups: result.groups, expires: result.expires };
+            storageSet(SESSION_KEY, JSON.stringify(session));
 
-        function showAdminDashboard() {
+            const wanted = getUrlGroup();
+            const last = parseInt(storageGet(GROUP_KEY), 10);
+            const allowed = function(g) { return session.groups.indexOf(g) >= 0; };
+            if (wanted && allowed(wanted)) currentGroup = wanted;
+            else if (allowed(last)) currentGroup = last;
+            else if (allowed(CONFIG.DEFAULT_GROUP)) currentGroup = CONFIG.DEFAULT_GROUP;
+            else currentGroup = session.groups[0];
+
             document.getElementById('loginSection').classList.add('hidden');
             document.getElementById('adminDashboard').classList.remove('hidden');
-            updateWeekDisplay();
-            loadData();
+            buildGroupSelect();
+            applyGroup(wanted !== currentGroup);
+            if (wanted && !allowed(wanted)) {
+                alert('Nemate ovlasti za ' + wanted + '. odgojnu skupinu. Otvorena je ' + currentGroup + '. odgojna skupina.');
+            }
         }
 
-        document.getElementById('logoutBtn').addEventListener('click', function() {
-            userToken = null;
-            userInfo = null;
+        function buildGroupSelect() {
+            const sel = document.getElementById('groupSelect');
+            sel.innerHTML = '';
+            session.groups.forEach(function(g) {
+                const o = document.createElement('option');
+                o.value = String(g);
+                o.textContent = g + '. odgojna skupina';
+                sel.appendChild(o);
+            });
+            sel.style.display = session.groups.length > 1 ? '' : 'none';
+        }
+
+        // Postavlja naslov, adresu i učitava podatke i imena za trenutnu skupinu
+        function applyGroup(updateUrl) {
+            storageSet(GROUP_KEY, String(currentGroup));
+            document.getElementById('groupSelect').value = String(currentGroup);
+            document.getElementById('adminTitle').textContent = 'Lista odlazaka kući ' + currentGroup + '. odgojne skupine - Admin';
+            document.title = 'Admin - ' + currentGroup + '. odgojna skupina';
+            if (updateUrl) { try { history.replaceState(null, '', '?skupina=' + currentGroup); } catch (e) {} }
+            editing = null;
+            namesList = null;
+            namesFromSheet = false;
+            setNamesStatus('', false);
+            renderNames();
+            updateWeekDisplay();
+            loadData();
+            loadNames();
+        }
+
+        document.getElementById('groupSelect').addEventListener('change', function() {
+            currentGroup = parseInt(this.value, 10);
+            applyGroup(true);
+        });
+
+        function endSession(message) {
+            session = null;
+            currentGroup = null;
+            storageRemove(SESSION_KEY);
             document.getElementById('adminDashboard').classList.add('hidden');
             document.getElementById('loginSection').classList.remove('hidden');
-        });
+            setLoginError(message || '');
+            try { google.accounts.id.disableAutoSelect(); } catch (e) {}
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', function() { endSession(''); });
+
+        // Osvježenje stranice ne traži novu Google prijavu dok sesija traje
+        function restoreSession() {
+            const raw = storageGet(SESSION_KEY);
+            if (!raw) return;
+            try {
+                const s = JSON.parse(raw);
+                if (s && s.token && s.expires > Date.now() && Array.isArray(s.groups) && s.groups.length) {
+                    startSession({ session: s.token, email: s.email, name: s.name, groups: s.groups, expires: s.expires });
+                } else {
+                    storageRemove(SESSION_KEY);
+                }
+            } catch (e) {
+                storageRemove(SESSION_KEY);
+            }
+        }
 
         function getCurrentWeek() {
             const now = new Date();
-            const year = now.getFullYear();
+            const year = getWeekYear(now);
             const weekNum = getWeekNumber(now);
             return year + '-W' + weekNum;
         }
 
+        // Godina kojoj tjedan pripada po ISO pravilu: cijeli tjedan (npr. 28.12.-3.1.) ima jednu oznaku
+        function getWeekYear(date) {
+            const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+            const dayNum = d.getUTCDay() || 7;
+            d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+            return d.getUTCFullYear();
+        }
         function getWeekNumber(date) {
             const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
             const dayNum = d.getUTCDay() || 7;
@@ -402,14 +509,11 @@ function decodeJwtResponse(token) {
             noDataMessage.classList.add('hidden');
             dataTable.classList.add('hidden');
 
+            const reqId = ++loadSeq;
             try {
-                const response = await fetch('https://sheets.googleapis.com/v4/spreadsheets/' + CONFIG.SPREADSHEET_ID + '/values/Sheet1!A2:N?key=' + CONFIG.API_KEY);
-                if (!response.ok) throw new Error('Failed to load data');
-
-                const data = await response.json();
-                const rows = data.values || [];
-                const currentWeek = getCurrentWeek();
-                const weekRows = rows.filter(function(row) { return row && row[1] === currentWeek; });
+                const result = await api('getData', { skupina: currentGroup, week: getCurrentWeek() });
+                if (reqId !== loadSeq) return;
+                const weekRows = result.rows;
 
                 loadingIndicator.classList.add('hidden');
 
@@ -421,9 +525,10 @@ function decodeJwtResponse(token) {
                     updateSummary(weekRows);
                 }
             } catch (error) {
+                if (reqId !== loadSeq) return;
                 console.error('Error:', error);
                 loadingIndicator.classList.add('hidden');
-                noDataMessage.textContent = 'Greška pri učitavanju';
+                noDataMessage.textContent = 'Greška pri učitavanju: ' + error.message;
                 noDataMessage.classList.remove('hidden');
             }
         }
@@ -457,13 +562,9 @@ function decodeJwtResponse(token) {
 
         document.getElementById('exportBtn').addEventListener('click', async function() {
             try {
-                const response = await fetch('https://sheets.googleapis.com/v4/spreadsheets/' + CONFIG.SPREADSHEET_ID + '/values/Sheet1!A1:N?key=' + CONFIG.API_KEY);
-                if (!response.ok) throw new Error('Failed');
-                const data = await response.json();
-                const rows = data.values || [];
                 const currentWeek = getCurrentWeek();
-                const weekRows = rows.filter(function(row, idx) { return idx === 0 || row[1] === currentWeek; });
-                const csv = weekRows.map(function(row) {
+                const result = await api('getData', { skupina: currentGroup, week: currentWeek });
+                const csv = [result.header].concat(result.rows).map(function(row) {
                     return row.map(function(cell) {
                         const escaped = String(cell || '').replace(/"/g, '""');
                         return escaped.indexOf(',') >= 0 ? '"' + escaped + '"' : escaped;
@@ -472,10 +573,10 @@ function decodeJwtResponse(token) {
                 const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
-                link.download = 'lista_' + currentWeek + '.csv';
+                link.download = 'lista_os' + currentGroup + '_' + currentWeek + '.csv';
                 link.click();
             } catch (error) {
-                alert('Greška pri izvozu');
+                alert('Greška pri izvozu: ' + error.message);
             }
         });
 
@@ -485,14 +586,13 @@ function decodeJwtResponse(token) {
             btn.disabled = true;
             btn.textContent = '⏳ Priprema...';
             try {
-                await loadNames();   // svježi popis imena (ne baca grešku; u najgorem slučaju ostaje prethodni)
-                const response = await fetch('https://sheets.googleapis.com/v4/spreadsheets/' + CONFIG.SPREADSHEET_ID + '/values/Sheet1!A2:N?key=' + CONFIG.API_KEY);
-                if (!response.ok) throw new Error('Failed');
-                const data = await response.json();
-                const rows = data.values || [];
+                await loadNames();   // svježi popis imena (ne baca grešku)
+                if (!namesFromSheet || !namesList || namesList.length === 0) {
+                    throw new Error('Popis imena ove skupine nije učitan ili je prazan.');
+                }
                 const currentWeek = getCurrentWeek();
-                const weekRows = rows.filter(function(row) { return row && row[1] === currentWeek; });
-                generatePDF(weekRows, currentWeek);
+                const result = await api('getData', { skupina: currentGroup, week: currentWeek });
+                generatePDF(result.rows, currentWeek);
             } catch (error) {
                 alert('Greška: ' + error.message);
             } finally {
@@ -503,19 +603,12 @@ function decodeJwtResponse(token) {
 
         // ---------- Upravljanje imenima ----------
         // Popis se čita iz kartice "Imena" (preko Apps Script webhooka).
-        // Ugrađeni popis služi samo kao rezerva ako učitavanje ne uspije.
-        const FALLBACK_NAMES = [
-            ["Babić","Stjepan"],["Bernardić","Niko"],["Božičević","Josip"],["Božičević","Maks Anton"],
-            ["Ferara","Patrik"],["Herceg","Mihael"],["Išek","Dominik"],["Jerčić","Duje"],
-            ["Jurčević","Patrik"],["Kukuruzović","Slavko"],["Maračić","Luka"],["Mičurin","Marko"],
-            ["Petričušić","Patrik"],["Rahan","Gabriel"],["Rendulić","Noa Izak"],["Sabljak","Marko"],
-            ["Štemberger","Fran"],["Tokić","Gabriel"],["Tomičić","Karlo"],["Turk","Niko"],
-            ["Vuković","Stipe"],["Žic","David"]
-        ];
+        // Svaka odgojna skupina ima svoj popis.
         const MAX_NAMES = 35;
         const hrCollator = new Intl.Collator('hr');
         let namesList = null;        // [{p, i}] sortirano po hrvatskoj abecedi
         let namesFromSheet = false;  // true samo kad je popis uspješno učitan iz tablice
+        let namesSeq = 0;            // zaštita od zastarjelih odgovora
 
         function sortNames(list) {
             return list.slice().sort(function(a, b) {
@@ -528,7 +621,7 @@ function decodeJwtResponse(token) {
         }
 
         function getPeopleForPdf() {
-            const base = namesList || FALLBACK_NAMES.map(function(x) { return { p: x[0], i: x[1] }; });
+            const base = namesList || [];
             return sortNames(base).map(function(x, idx) { return { n: idx + 1, p: x.p, i: x.i }; });
         }
 
@@ -611,42 +704,35 @@ function decodeJwtResponse(token) {
                 list.appendChild(row);
             });
             document.getElementById('addNameBtn').disabled = !namesFromSheet;
+            document.getElementById('bulkAddBtn').disabled = !namesFromSheet;
             if (focusEl) { focusEl.focus(); focusEl.select(); }
         }
 
-        // Nikad ne baca grešku - u slučaju neuspjeha ostaje prethodni (ili ugrađeni) popis
+        // Nikad ne baca grešku. Prazan popis je valjan (nova skupina bez imena).
         async function loadNames() {
+            const group = currentGroup;
+            const seq = ++namesSeq;
             try {
-                const response = await fetch(CONFIG.WEBHOOK_URL + '?action=names');
+                const response = await fetch(CONFIG.WEBHOOK_URL + '?action=names&skupina=' + group);
                 const result = await response.json();
-                if (!result.success || !Array.isArray(result.names) || result.names.length === 0) {
-                    throw new Error(result.error || 'Prazan popis');
-                }
+                if (!result.success || !Array.isArray(result.names)) throw new Error(result.error || 'Neispravan odgovor');
+                if (seq !== namesSeq || group !== currentGroup) return;
                 namesList = normalizeNames(result.names);
                 namesFromSheet = true;
-                if (document.getElementById('namesStatus').classList.contains('error')) setNamesStatus('', false);
+                setNamesStatus(namesList.length ? '' : 'Popis je prazan - dodajte imena ispod.', false);
             } catch (error) {
+                if (seq !== namesSeq || group !== currentGroup) return;
                 console.warn('Popis imena nije učitan:', error);
                 namesFromSheet = false;
-                setNamesStatus('Popis imena nije moguće učitati iz tablice. Koristi se ugrađeni popis (PDF radi), a dodavanje i uklanjanje je isključeno. Provjerite je li webhook ažuriran.', true);
+                setNamesStatus('Popis imena nije moguće učitati iz tablice. Uređivanje je isključeno i PDF se ne može izraditi. Provjerite je li skripta ažurirana i objavljena.', true);
             }
             renderNames();
         }
 
         async function nameAction(action, prezime, ime, extra) {
-            if (!userToken) throw new Error('Prijavite se ponovno.');
-            let result;
-            try {
-                const response = await fetch(CONFIG.WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify(Object.assign({ action: action, token: userToken, prezime: prezime, ime: ime }, extra || {}))
-                });
-                result = await response.json();
-            } catch (error) {
-                throw new Error('Greška u komunikaciji s poslužiteljem. Pokušajte ponovno.');
-            }
-            if (!result.success) throw new Error(result.error || 'Radnja nije uspjela.');
+            const group = currentGroup;
+            const result = await api(action, Object.assign({ skupina: group, prezime: prezime, ime: ime }, extra || {}));
+            if (group !== currentGroup) return result;   // skupina je u međuvremenu promijenjena
             namesList = normalizeNames(result.names);
             namesFromSheet = true;
             renderNames();
@@ -685,6 +771,55 @@ function decodeJwtResponse(token) {
                 btn.disabled = false;
             }
         }
+
+        // "Prezime Ime" po retku. Zarez ili tabulator odvajaju prezime od imena (za dvostruka prezimena).
+        function parseBulkNames(text) {
+            const names = [], bad = [];
+            text.split(/\r?\n/).forEach(function(raw) {
+                const line = raw.trim();
+                if (!line) return;
+                let p = '', i = '';
+                const sep = line.indexOf('\t') >= 0 ? '\t' : (line.indexOf(',') >= 0 ? ',' : null);
+                if (sep) {
+                    const parts = line.split(sep);
+                    p = parts[0];
+                    i = parts.slice(1).join(' ');
+                } else {
+                    const k = line.indexOf(' ');
+                    if (k > 0) { p = line.slice(0, k); i = line.slice(k + 1); }
+                }
+                p = p.replace(/\s+/g, ' ').trim();
+                i = i.replace(/\s+/g, ' ').trim();
+                if (p && i) names.push({ prezime: p, ime: i }); else bad.push(line);
+            });
+            return { names: names, bad: bad };
+        }
+
+        document.getElementById('bulkAddBtn').addEventListener('click', async function() {
+            const box = document.getElementById('bulkNames');
+            const parsed = parseBulkNames(box.value);
+            if (!parsed.names.length) {
+                setNamesStatus('Nema valjanih redaka. Upišite jedno ime po retku: Prezime Ime.', true);
+                return;
+            }
+            const btn = this;
+            btn.disabled = true;
+            try {
+                const result = await nameAction('addNames', '', '', { names: parsed.names });
+                const skipped = result.skipped.map(function(x) { return x.name + ' (' + x.reason + ')'; })
+                    .concat(parsed.bad.map(function(x) { return x + ' (nedostaje ime ili prezime)'; }));
+                box.value = '';
+                let text = 'Dodano: ' + result.added;
+                if (skipped.length) {
+                    text += '. Preskočeno (' + skipped.length + '): ' + skipped.slice(0, 5).join(', ') + (skipped.length > 5 ? ' ...' : '');
+                }
+                setNamesStatus(text, result.added === 0);
+            } catch (error) {
+                setNamesStatus(error.message, true);
+            } finally {
+                btn.disabled = !namesFromSheet;
+            }
+        });
 
         document.getElementById('addNameBtn').addEventListener('click', async function() {
             const pEl = document.getElementById('newPrezime');
@@ -773,7 +908,7 @@ weekRows.forEach(function(r) {
 
             doc.setFontSize(16);
             doc.setFont('RobotoCondensed');
-            doc.text('7. ODGOJNA SKUPINA',105,25,{align:'center'});
+            doc.text(currentGroup+'. ODGOJNA SKUPINA',105,25,{align:'center'});
             doc.text('ODLAZAK KUĆI ______________',105,33,{align:'center'});
 
             function dc(x, y, w, h, t, bg, tc, s, b, a, rot) {
@@ -879,11 +1014,14 @@ weekRows.forEach(function(r) {
             dc(x,uY,cW[11],rH,tot.nR||'',null,[0,0,0],rowFs,1,'center');x+=cW[11];
             dc(x,uY,cW[12],rH,tot.nV||'',null,[0,0,0],rowFs,1,'center');
 
-            doc.save('odlazak-kuci-'+currentWeek+'.pdf');
+            doc.save('odlazak-kuci-os'+currentGroup+'-'+currentWeek+'.pdf');
         }
 
-        window.addEventListener('load', initializeGoogleSignIn);
-        setInterval(function(){ if(!document.getElementById('adminDashboard').classList.contains('hidden')) loadData(); }, 30000);
+        window.addEventListener('load', function() { initializeGoogleSignIn(); restoreSession(); });
+        // Osvježavanje svake minute, samo dok je kartica vidljiva (štedi Apps Script kvotu)
+        setInterval(function() {
+            if (session && document.visibilityState === 'visible' && !document.getElementById('adminDashboard').classList.contains('hidden')) loadData();
+        }, 60000);
     </script>
 </body>
 </html>

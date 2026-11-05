@@ -1,115 +1,66 @@
-# Configuration Example
+# Configuration guide
 
-This file shows you exactly where to find and paste your configuration values.
+Almost everything you may want to change is in **two places**: `config.js` (the website) and the first
+lines of `Code.gs` (the script). The HTML files do not need editing.
 
-## Step 1: Get Your Values
+## `config.js` (shared by `index.html` and `admin.html`)
 
-### Google Client ID
-**Where to find it:**
-- Google Cloud Console > APIs & Services > Credentials
-- Look for "OAuth 2.0 Client IDs"
-- Format: `123456789012-abcdefghijklmnopqrstuvwxyz123456.apps.googleusercontent.com`
-
-### Spreadsheet ID
-**Where to find it:**
-- Open your Google Sheet
-- Look at the URL: `https://docs.google.com/spreadsheets/d/THIS_IS_YOUR_ID/edit`
-- Format: `1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms` (example)
-
-### API Key
-**Where to find it:**
-- Google Cloud Console > APIs & Services > Credentials
-- Look for "API Keys"
-- Format: `AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqwS8` (example)
-
-## Step 2: Open Files and Replace
-
-### In index.html (around line 294):
-
-**BEFORE (what you see now):**
 ```javascript
-const CONFIG = {
-    GOOGLE_CLIENT_ID: 'YOUR_GOOGLE_CLIENT_ID_HERE',
-    SPREADSHEET_ID: 'YOUR_SPREADSHEET_ID_HERE',
-    API_KEY: 'YOUR_GOOGLE_API_KEY_HERE'
+window.APP_CONFIG = {
+    GOOGLE_CLIENT_ID: '1234567890-abc….apps.googleusercontent.com',
+    WEBHOOK_URL: 'https://script.google.com/macros/s/AKfycb…/exec',
+    GROUP_COUNT: 7,
+    DEFAULT_GROUP: 7
 };
 ```
 
-**AFTER (with your actual values):**
-```javascript
-const CONFIG = {
-    GOOGLE_CLIENT_ID: '123456789012-abcdefghijklmnopqrstuvwxyz123456.apps.googleusercontent.com',
-    SPREADSHEET_ID: '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms',
-    API_KEY: 'AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqwS8'
-};
-```
+| Setting | What it is | Where to find it |
+|---|---|---|
+| `GOOGLE_CLIENT_ID` | Google sign-in client | Google Cloud Console → APIs & Services → Credentials → OAuth 2.0 Client IDs |
+| `WEBHOOK_URL` | The script's web address | Apps Script → Deploy → Manage deployments → *Web app* URL (ends in `/exec`) |
+| `GROUP_COUNT` | Number of odgojne skupine (links `?skupina=1` … `N`) | – |
+| `DEFAULT_GROUP` | Group the admin page opens when the link has no `?skupina=` | – |
 
-### In admin.html (around line 236):
+The spreadsheet ID and the API key are **no longer needed** anywhere on the website.
 
-Do the exact same replacement with the same three values.
+## `Code.gs` (top of the file)
 
-## Important Notes
+| Setting | Default | Meaning |
+|---|---|---|
+| `CLIENT_ID` | – | Must be **identical** to `GOOGLE_CLIENT_ID` in `config.js` (the script refuses Google logins issued for another app) |
+| `FIRST_ADMIN` | your email | Written into the `Admini` tab by `setup()` the first time. Afterwards manage admins in the tab |
+| `GROUP_COUNT` | 7 | Must be **identical** to `GROUP_COUNT` in `config.js` |
+| `LEGACY_GROUP` | 7 | Group that old rows/names without a group belong to (the pre-groups data) |
+| `MAX_NAMES` | 35 | Maximum names per group |
+| `SESSION_HOURS` | 12 | How long an admin stays signed in |
+| `DEFAULT_NAMES` | 22 names | Seed list for group 7, used only when `Imena` is empty |
 
-1. **Keep the quotes** around the values
-2. **Don't add spaces** before or after the values
-3. **Both files** (index.html and admin.html) need the same values
-4. **Save the files** after editing
-5. **Upload to GitHub** after saving
+After changing `Code.gs`: **Deploy → Manage deployments → ✏️ → Version: New version → Deploy**
+(saving alone does not change what the live web app does).
 
-## Verification Checklist
+## Values that must match
 
-✅ Client ID starts with numbers and ends with `.apps.googleusercontent.com`
-✅ Spreadsheet ID is a long string of letters, numbers, and special characters
-✅ API Key starts with `AIza`
-✅ All three values are wrapped in single quotes
-✅ No typos or extra spaces
-✅ Both files are updated
-✅ Files are saved
+| | `config.js` | `Code.gs` | Google Cloud |
+|---|---|---|---|
+| Client ID | `GOOGLE_CLIENT_ID` | `CLIENT_ID` | the OAuth client itself |
+| Number of groups | `GROUP_COUNT` | `GROUP_COUNT` | – |
+| Site address | – | – | *Authorized JavaScript origins* |
 
-## Test Your Configuration
+## The `Admini` tab
 
-After uploading to GitHub Pages:
-1. Visit your app URL
-2. Open browser console (F12)
-3. Click "Sign in with Google"
-4. If successful → Configuration is correct! ✅
-5. If error → Check console for error messages and verify values
+| Email | Skupine |
+|---|---|
+| `you@gmail.com` | `*` |
+| `ana@gmail.com` | `3` |
+| `marko@gmail.com` | `3,5` |
 
-## Need Help Finding the CONFIG Section?
+- Email: the exact Google account (capitalisation is ignored).
+- Skupine: `*` for all groups, or group numbers separated by commas. Empty = cannot sign in.
 
-**For index.html:**
-- Search for: `const CONFIG = {`
-- Should be around line 294
-- Inside the `<script>` section near the bottom
+## Common mistakes
 
-**For admin.html:**
-- Search for: `const CONFIG = {`
-- Should be around line 236
-- Inside the `<script>` section near the bottom
-
-## Example of Complete Setup
-
-```javascript
-// ✅ CORRECT EXAMPLE
-const CONFIG = {
-    GOOGLE_CLIENT_ID: '123456789012-abc123def456ghi789jkl012mno345pqr.apps.googleusercontent.com',
-    SPREADSHEET_ID: '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms',
-    API_KEY: 'AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqwS8'
-};
-
-// ❌ WRONG - Missing quotes
-const CONFIG = {
-    GOOGLE_CLIENT_ID: 123456789012-abc123def456ghi789jkl012mno345pqr.apps.googleusercontent.com,
-    SPREADSHEET_ID: 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms,
-    API_KEY: AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqwS8
-};
-
-// ❌ WRONG - Not replaced
-const CONFIG = {
-    GOOGLE_CLIENT_ID: 'YOUR_GOOGLE_CLIENT_ID_HERE',
-    SPREADSHEET_ID: 'YOUR_SPREADSHEET_ID_HERE',
-    API_KEY: 'YOUR_GOOGLE_API_KEY_HERE'
-};
-```
-
-You've got this! 💪
+- Pasting a **new deployment** URL after "New deployment" – the URL changes; use *Manage deployments → edit → New version* instead.
+- Editing `Code.gs` and forgetting to publish a new version.
+- `GROUP_COUNT` different in the two files (links beyond the smaller number are rejected).
+- Forgetting to add the Netlify address to *Authorized JavaScript origins* (Google login fails with `origin_mismatch`).
+- Keeping the spreadsheet shared publicly – set it to **Restricted**; the script does not need public access.

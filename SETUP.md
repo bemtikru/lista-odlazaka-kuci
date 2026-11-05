@@ -1,121 +1,148 @@
-# Quick Setup Guide
+# Setup guide
 
-## Prerequisites
-- GitHub account
-- Google account
-- 15 minutes of your time
+Two paths:
 
-## Step-by-Step Setup (Simplified)
+- **[A. Upgrading the existing single-group installation](#a-upgrading-from-the-single-group-version)** – what to do now
+- **[B. Installing from scratch](#b-installing-from-scratch)**
 
-### Part 1: Google Cloud Setup (5 minutes)
+Then: [C. Adding a group, an admin, or names](#c-day-to-day-adding-a-group-an-admin-or-names) ·
+[D. Troubleshooting](#d-troubleshooting)
 
-1. **Go to Google Cloud Console**
-   - Visit: https://console.cloud.google.com/
-   - Create new project: "Lista odlazaka kući"
+---
 
-2. **Enable APIs**
-   - Go to: APIs & Services > Library
-   - Enable: "Google Sheets API"
+## A. Upgrading from the single-group version
 
-3. **Create OAuth Client**
-   - Go to: APIs & Services > Credentials
-   - Create OAuth client ID > Web application
-   - Add origin: `https://YOUR-GITHUB-USERNAME.github.io`
-   - Copy the Client ID
+Your current system is group **7**. The upgrade keeps all existing data and marks it as group 7.
+Do the steps **in this order**, and do step 8 last.
 
-4. **Create API Key**
-   - Create Credentials > API Key
-   - Restrict to: Google Sheets API
-   - Copy the API Key
+1. **Back up.** In the spreadsheet: *File → Make a copy*.
+2. **Update the script.** Open the script (*Extensions → Apps Script* from the spreadsheet).
+   Select everything in `Code.gs`, replace it with the new `Code.gs`, press **Ctrl+S**.
+3. **Run `setup` once.** In the function drop-down choose **`setup`**, click **Run**.
+   If Google asks for permission: *Review permissions → your account → Advanced → Go to … (unsafe) → Allow*.
+   Check the log says "Gotovo", and in the spreadsheet you now have:
+   - tab **`Imena`** with a `Skupina` column (your 22 names = 7),
+   - tab **`Admini`** with your email and `*`,
+   - column **`O` "Skupina"** in `Sheet1`, filled with `7` for all old rows.
+   `setup` is safe to run again – it never duplicates or overwrites data.
+4. **Publish the new script version.** *Deploy → Manage deployments → ✏️ (edit) on the existing
+   deployment → Version: **New version** → Deploy.*
+   Do **not** choose "New deployment" – that would change the URL.
+5. **Upload the site files** (GitHub → Netlify redeploys automatically):
+   `config.js` (new), `index.html`, `admin.html`, `_redirects`, and the docs.
+   Do this right after step 4. In between, students' old pages keep working (their submissions are
+   stored as group 7), but the *old* admin page can no longer edit names.
+6. **Test.**
+   - `https://YOUR-SITE/?skupina=7` → the 22 names appear in the drop-down.
+   - `https://YOUR-SITE/admin?skupina=7` → sign in with Google → table, names panel, CSV and PDF work.
+   - Send one test submission and delete the test row in `Sheet1` afterwards.
+7. **Give out the links** (see `README.md`). Tell group 7 to use `…/?skupina=7` – the old bare link
+   now shows a group chooser.
+8. **Lock the spreadsheet (last step).**
+   - Spreadsheet → *Share → General access → **Restricted***.
+   - Google Cloud Console → *APIs & Services → Credentials* → **delete the API key** the old admin
+     page used. (The new pages no longer use any key.)
+   - Test the admin page once more – it reads through the script, so it must still work.
 
-### Part 2: Google Sheet Setup (2 minutes)
+**Rolling back:** in *Manage deployments* you can set the deployment back to the previous version,
+and the previous HTML files are in your GitHub history.
 
-1. **Create Spreadsheet**
-   - Go to: https://sheets.google.com
-   - Create new sheet: "Lista odlazaka kući"
-   - Add headers in row 1:
-     ```
-     Timestamp | Week | Email | Ime i Prezime | Idem prije Petka | Ostajem cijeli vikend | Petak vrijeme odlaska | Petak ručak | Petak večera | Subota vrijeme odlaska | Subota ručak | Subota večera | Nedjelja ručak | Nedjelja večera
-     ```
+---
 
-2. **Share the Sheet**
-   - Click Share
-   - Set to: "Anyone with the link" can "Edit"
-   - Copy the Spreadsheet ID from URL
+## B. Installing from scratch
 
-### Part 3: Configure Files (3 minutes)
+### 1. Google Cloud: the login (OAuth client)
 
-1. **Edit index.html**
-   - Find line 294:
-   ```javascript
-   const CONFIG = {
-       GOOGLE_CLIENT_ID: 'PASTE_CLIENT_ID_HERE',
-       SPREADSHEET_ID: 'PASTE_SPREADSHEET_ID_HERE',
-       API_KEY: 'PASTE_API_KEY_HERE'
-   };
-   ```
+1. <https://console.cloud.google.com/> → create a project (e.g. "Lista odlazaka kuci").
+2. *APIs & Services → OAuth consent screen* (Google Auth platform): app name, your email;
+   audience **External**. If it is in *Testing*, add the Google accounts that may sign in as test
+   users, or publish it (basic sign-in needs no Google verification).
+3. *Credentials → Create credentials → OAuth client ID → Web application*.
+   **Authorized JavaScript origins:** `https://YOUR-SITE.netlify.app` (and your own domain if you
+   use one). No redirect URIs are needed.
+4. Copy the **Client ID**.
 
-2. **Edit admin.html**
-   - Find line 236:
-   - Paste the same three values
+### 2. Google Sheet
 
-### Part 4: Deploy to GitHub (5 minutes)
+1. Create a spreadsheet. Rename the first tab to **`Sheet1`**.
+2. Row 1 headers (A–O):
+   `Timestamp | Week | Email | Ime i Prezime | Idem prije Petka | Ostajem cijeli vikend | Petak vrijeme odlaska | Petak ručak | Petak večera | Subota vrijeme odlaska | Subota ručak | Subota večera | Nedjelja ručak | Nedjelja večera | Skupina`
+3. Keep sharing **Restricted** (only you). Nothing else needs access.
 
-1. **Create Repository**
-   - Go to: https://github.com/new
-   - Name: `lista-odlazaka-kuci`
-   - Make it Public
-   - Create repository
+### 3. Apps Script
 
-2. **Upload Files**
-   - Click "Add file" > "Upload files"
-   - Drag and drop all 4 files:
-     - index.html
-     - admin.html
-     - README.md
-     - .gitignore
-   - Commit changes
+1. In the spreadsheet: *Extensions → Apps Script*. Paste `Code.gs` over the default code.
+2. At the top of `Code.gs` set `CLIENT_ID` (from step 1), `FIRST_ADMIN` (your Google email) and
+   `GROUP_COUNT`.
+3. Run **`setup`** (see A3). It creates `Imena`, `Admini` and the secret used for sessions.
+4. *Deploy → New deployment → type **Web app*** · Execute as: **Me** · Who has access: **Anyone** →
+   Deploy. Copy the **Web app URL**.
 
-3. **Enable GitHub Pages**
-   - Go to: Settings > Pages
-   - Source: "Deploy from a branch"
-   - Branch: main / root
-   - Save
+### 4. Site files
 
-4. **Wait 2 minutes** then visit:
-   - App: `https://YOUR-USERNAME.github.io/lista-odlazaka-kuci/`
-   - Admin: `https://YOUR-USERNAME.github.io/lista-odlazaka-kuci/admin.html`
+Edit `config.js`: `GOOGLE_CLIENT_ID`, `WEBHOOK_URL` (the Web app URL), `GROUP_COUNT`,
+`DEFAULT_GROUP`. Nothing else in the HTML files needs editing – see `CONFIG_GUIDE.md`.
 
-## Done! 🎉
+### 5. Netlify
 
-Your app is now live and ready to use.
+Put `index.html`, `admin.html`, `config.js`, `_redirects` in the GitHub repository root and connect the
+repository to a Netlify site (no build command, publish directory = root). Every push redeploys.
+Then add the Netlify address to the OAuth client's authorized origins (step 1.3).
 
-## Important URLs to Save
+### 6. First test
 
-- **User App**: `https://YOUR-USERNAME.github.io/lista-odlazaka-kuci/`
-- **Admin Dashboard**: `https://YOUR-USERNAME.github.io/lista-odlazaka-kuci/admin.html`
-- **Google Sheet**: (your spreadsheet URL)
+Open `…/?skupina=N` and `…/admin?skupina=N` and follow A6.
 
-## Testing
+---
 
-1. Open the user app
-2. Sign in with Google
-3. Fill out the form
-4. Submit
-5. Check the Google Sheet - data should appear
-6. Open admin dashboard - see real-time data
+## C. Day to day: adding a group, an admin, or names
 
-## Common Issues
+**Add names to a group** – the group's admin (or you) opens `…/admin?skupina=N` →
+*👥 Upravljanje imenima* → add one by one, or *Dodaj više imena odjednom*.
 
-**"Failed to submit"**
-→ Make sure Google Sheet is shared with "Anyone with link can edit"
+**Add an admin** – in the spreadsheet tab `Admini` add a row:
 
-**"Sign in failed"**
-→ Check OAuth origins include your GitHub Pages URL
+| Email | Skupine |
+|---|---|
+| `new.admin@gmail.com` | `3` |
+| `second.person@gmail.com` | `3,5` |
+| `you@gmail.com` | `*` |
 
-**"CORS error"**
-→ Make sure you're using HTTPS (GitHub Pages URL), not opening the file directly
+The email must be the exact Google account they will sign in with. Removing the row cuts their access
+immediately. An admin with an empty `Skupine` cell cannot sign in.
 
-## Need Help?
+**Start a new group** – nothing to install: send the students `…/?skupina=N`, and the admin fills the
+names (they will see "Popis imena … prazan" until then).
 
-Check the full README.md for detailed troubleshooting and customization options.
+**Change the number of groups** – change `GROUP_COUNT` in both `Code.gs` and `config.js`, publish a
+new script version, upload `config.js`.
+
+---
+
+## D. Troubleshooting
+
+**Drop-down empty / "Popis imena nije učitan".** Open
+`WEBHOOK_URL?action=names&skupina=7` in a browser tab:
+
+| You see | Meaning / fix |
+|---|---|
+| `{"success":true,"names":[…]}` | Script is fine – hard-refresh the page (Ctrl+F5) |
+| `Script function not found: doGet` | New version not published – step A4 |
+| `…Kartica "Imena" ne postoji…` | Run `setup` – step A3 |
+| A Google sign-in page | Deployment access is not *Anyone* – edit the deployment |
+
+**"Nemate ovlasti".** The signed-in email is not in `Admini` (or that row has no groups). Check for
+typos and that they chose the right Google account.
+
+**"Sesija je istekla".** Sessions last 12 hours; sign in again.
+
+**"Ime nije na popisu ove odgojne skupine".** The student opened the wrong group's link, or an admin
+removed/renamed their name. Check the names panel.
+
+**Changes not visible after upload.** Wait for Netlify to finish deploying, then Ctrl+F5.
+
+**"Google hasn't verified this app" when authorizing the script.** Expected for your own script:
+Advanced → Go to … (unsafe) → Allow.
+
+**The permission page in your Google account calls the script "Untitled project".** Cosmetic –
+the name comes from the hidden Google Cloud project behind the script. It is your own script.

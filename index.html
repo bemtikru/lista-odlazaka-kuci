@@ -37,6 +37,30 @@
             text-align: center;
         }
 
+        .group-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            max-width: 340px;
+            margin: 0 auto;
+        }
+        .group-link {
+            display: block;
+            padding: 14px 10px;
+            border-radius: 10px;
+            border: 2px solid #667eea;
+            color: #667eea;
+            font-weight: 600;
+            text-decoration: none;
+            background: white;
+        }
+        .group-link:hover, .group-link:active { background: #667eea; color: white; }
+        .names-error {
+            display: none;
+            color: #c62828;
+            font-size: 13px;
+            margin-top: 6px;
+        }
         .app-title {
             font-size: 24px;
             font-weight: 700;
@@ -316,6 +340,13 @@
             </button>
         </div>
 
+        <!-- Odabir odgojne skupine (kad link nema ?skupina=) -->
+        <div class="login-screen" id="groupScreen" style="display:none;">
+            <h1 class="app-title">Lista odlazaka kući</h1>
+            <p style="margin-bottom:20px;color:#333;">Odaberite svoju odgojnu skupinu</p>
+            <div class="group-grid" id="groupGrid"></div>
+        </div>
+
         <!-- Form Screen -->
         <div class="form-screen" id="formScreen">
             <div class="user-info">
@@ -325,7 +356,7 @@
 
             <div class="form-title">
                 <h2>Lista odlazaka kući</h2>
-                <p>7.odg. skupine</p>
+                <p id="groupLabel">&nbsp;</p>
                 <p>U.d. Karlovac</p>
             </div>
 
@@ -336,29 +367,8 @@
                         <label class="form-label">IME I PREZIME (OBAVEZAN UNOS)</label>
                         <select class="form-select" name="ime_prezime" id="imePrezime">
                         <option value="-">-</option>
-                        <option value="Babić Stjepan">Babić Stjepan</option>
-                        <option value="Bernardić Niko">Bernardić Niko</option>
-                        <option value="Božičević Josip">Božičević Josip</option>
-                        <option value="Božičević Maks Anton">Božičević Maks Anton</option>
-                        <option value="Ferara Patrik">Ferara Patrik</option>
-                        <option value="Herceg Mihael">Herceg Mihael</option>
-                        <option value="Išek Dominik">Išek Dominik</option>
-                        <option value="Jerčić Duje">Jerčić Duje</option>
-                        <option value="Jurčević Patrik">Jurčević Patrik</option>
-                        <option value="Kukuruzović Slavko">Kukuruzović Slavko</option>
-                        <option value="Maračić Luka">Maračić Luka</option>
-                        <option value="Mičurin Marko">Mičurin Marko</option>
-                        <option value="Petričušić Patrik">Petričušić Patrik</option>
-                        <option value="Rahan Gabriel">Rahan Gabriel</option>
-                        <option value="Rendulić Noa Izak">Rendulić Noa Izak</option>
-                        <option value="Sabljak Marko">Sabljak Marko</option>
-                        <option value="Štemberger Fran">Štemberger Fran</option>
-                        <option value="Tokić Gabriel">Tokić Gabriel</option>
-                        <option value="Tomičić Karlo">Tomičić Karlo</option>
-                        <option value="Turk Niko">Turk Niko</option>
-                        <option value="Vuković Stipe">Vuković Stipe</option>
-                        <option value="Žic David">Žic David</option>
                     </select>
+                    <div class="names-error" id="namesError"></div>
                 </div>
                 </div>
 
@@ -510,12 +520,16 @@
     </div>
 
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="config.js"></script>
     <script>
-        // Configuration
-        const CONFIG = {
-            GOOGLE_CLIENT_ID: '406542478341-9s7qehkmblkr3n0h1r78a0gq9dumv473.apps.googleusercontent.com',
-            WEBHOOK_URL: 'https://script.google.com/macros/s/AKfycbwKA9VBT_fM0Rn9yNLpMHyotQcg8CVl4mfnXKVyf8RX3Gev4yyfzb2pXCPYzHUHW6V4hA/exec'
-        };
+        // Configuration (vrijednosti su u config.js)
+        const CONFIG = window.APP_CONFIG;
+
+        // Odgojna skupina iz linka (?skupina=3). Bez valjane skupine prikazuje se odabir skupine.
+        const GROUP = (function () {
+            const n = parseInt(new URLSearchParams(location.search).get('skupina'), 10);
+            return (n >= 1 && n <= CONFIG.GROUP_COUNT) ? n : null;
+        })();
 
         let userToken = null;
         let userInfo = null;
@@ -605,12 +619,19 @@
         // Get current week identifier
         function getCurrentWeek() {
             const now = new Date();
-            const year = now.getFullYear();
+            const year = getWeekYear(now);
             const weekNum = getWeekNumber(now);
             return `${year}-W${weekNum}`;
         }
 
         // Get week number
+        // Godina kojoj tjedan pripada po ISO pravilu: cijeli tjedan (npr. 28.12.-3.1.) ima jednu oznaku
+        function getWeekYear(date) {
+            const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+            const dayNum = d.getUTCDay() || 7;
+            d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+            return d.getUTCFullYear();
+        }
         function getWeekNumber(date) {
             const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
             const dayNum = d.getUTCDay() || 7;
@@ -674,6 +695,7 @@
                     timestamp: new Date().toISOString(),
                     week: getCurrentWeek(),
                     email: userInfo.email,
+                    skupina: GROUP,
                     ime_prezime: formData.get('ime_prezime'),
                     idem_prije_petka: formData.get('idem_prije_petka'),
                     ostajem_cijeli_vikend: formData.get('ostajem_cijeli_vikend'),
@@ -710,41 +732,38 @@
             }
         });
 
-        // Submit data to Google Sheets via Apps Script webhook
+        // Submit data to Google Sheets via Apps Script webhook.
+        // Odgovor se čita, pa učenik vidi pravu poruku ako poslužitelj odbije prijavu.
         async function submitToGoogleSheets(data) {
+            let result;
             try {
                 const response = await fetch(CONFIG.WEBHOOK_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify(data)
                 });
-
-                // Note: no-cors mode doesn't allow reading the response
-                // We assume success if no error is thrown
-                return { success: true };
+                result = await response.json();
             } catch (error) {
                 console.error('Submit error:', error);
-                throw new Error('Failed to submit data');
+                throw new Error('Nema veze s poslužiteljem.');
             }
+            if (!result.success) throw new Error(result.error || 'Prijava nije spremljena.');
+            return result;
         }
 
-        // Load the list of names from the Google Sheet ("Imena" tab).
-        // The options already in the HTML act as a fallback if loading fails.
+        // Učitava popis imena ove odgojne skupine iz kartice "Imena" (preko Apps Scripta).
         async function loadStudentNames() {
             const select = document.getElementById('imePrezime');
-            if (!select) return;
+            const errorBox = document.getElementById('namesError');
+            if (!select || !GROUP) return;
+            const showError = (text) => { errorBox.textContent = text; errorBox.style.display = text ? 'block' : 'none'; };
             try {
                 const controller = new AbortController();
-                const timer = setTimeout(() => controller.abort(), 10000);
-                const response = await fetch(CONFIG.WEBHOOK_URL + '?action=names', { signal: controller.signal });
+                const timer = setTimeout(() => controller.abort(), 15000);
+                const response = await fetch(CONFIG.WEBHOOK_URL + '?action=names&skupina=' + GROUP, { signal: controller.signal });
                 clearTimeout(timer);
                 const result = await response.json();
-                if (!result.success || !Array.isArray(result.names) || result.names.length === 0) {
-                    throw new Error(result.error || 'Prazan popis');
-                }
+                if (!result.success || !Array.isArray(result.names)) throw new Error(result.error || 'Neispravan odgovor');
 
                 const collator = new Intl.Collator('hr');
                 const names = result.names
@@ -765,14 +784,33 @@
                     select.appendChild(opt);
                 });
                 select.value = Array.from(select.options).some(o => o.value === previous) ? previous : '-';
+                showError(names.length ? '' : 'Popis imena za ovu skupinu je prazan. Obratite se administratoru.');
             } catch (error) {
-                console.warn('Popis imena nije učitan, koristi se ugrađeni popis:', error);
+                console.warn('Popis imena nije učitan:', error);
+                showError('Popis imena nije učitan. Osvježite stranicu.');
             }
         }
         window.addEventListener('load', loadStudentNames);
 
+        // Odabir skupine kad link nema ?skupina=
+        function showGroupChooser() {
+            document.getElementById('loginScreen').style.display = 'none';
+            const grid = document.getElementById('groupGrid');
+            for (let n = 1; n <= CONFIG.GROUP_COUNT; n++) {
+                const a = document.createElement('a');
+                a.className = 'group-link';
+                a.href = '?skupina=' + n;
+                a.textContent = n + '. odgojna skupina';
+                grid.appendChild(a);
+            }
+            document.getElementById('groupScreen').style.display = 'block';
+        }
+
         // Initialize when page loads
         window.addEventListener('load', () => {
+            if (!GROUP) { showGroupChooser(); return; }
+            document.title = 'Lista odlazaka kući - ' + GROUP + '. odgojna skupina';
+            document.getElementById('groupLabel').textContent = GROUP + '.odg. skupine';
             initializeGoogleSignIn();
             setupIdemPrijePetkaLogic();
             setupOstajemCijeliVikendLogic();

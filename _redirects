@@ -1,6 +1,3 @@
-# Redirects for SPA behavior
-/*    /index.html   200
-
-# Remove trailing slashes
-/index.html/  /index.html  301
-/admin.html/  /admin.html  301
+# Kratki link za admin stranicu: /admin?skupina=3  ->  admin.html?skupina=3
+# (query string se prenosi). Nepoznate adrese vraćaju 404 umjesto da otvore obrazac.
+/admin    /admin.html    200

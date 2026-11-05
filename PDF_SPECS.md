@@ -1,77 +1,68 @@
-# EXACT PDF SPECIFICATIONS FROM WORD DOCUMENT
+# PDF specification (weekly list)
 
-## Extracted from: 7_os_odlasci_kući.docx
+Generated in the browser (jsPDF) from `admin.html`, based on the Word template
+`7_os_odlasci_kući.docx`. One A4 **portrait** page per group and week.
 
-**ORIENTATION: PORTRAIT (NOT LANDSCAPE!)**
+File name: `odlazak-kuci-os<GROUP>-<WEEK>.pdf`, e.g. `odlazak-kuci-os3-2026-W45.pdf`.
 
-### Column Widths (13 columns, in mm):
-1. R.BR: 11.47 mm
-2. PREZIME: 21.63 mm
-3. IME: 21.04 mm
-4. NEDOSTAJE: 6.67 mm
-5. OSTAJE - napsati razlog: 15.59 mm
-6. PETAK vrijeme odlaska: 13.65 mm
-7. PETAK prijava RUČAK: 12.91 mm
-8. PETAK prijava VEČERA: 14.89 mm
-9. SUBOTA vrijeme odlaska: 13.65 mm
-10. SUBOTA prijava RUČAK: 12.95 mm
-11. SUBOTA prijava VEČERA: 14.89 mm
-12. NEDJELJA prijava RUČAK: 12.95 mm
-13. NEDJELJA prijava VEČERA: 14.78 mm
+## Page
 
-**Total width: ~180 mm** (fits A4 portrait width of ~210mm with margins)
+- A4 portrait (210 × 297 mm), font **Roboto Condensed** (Regular + Bold, embedded in `admin.html`)
+- Title: `<N>. ODGOJNA SKUPINA` (16 pt, centred, y = 25 mm), below it `ODLAZAK KUĆI ______________` (y = 33 mm)
+- Table starts at x = 15 mm, y = 40 mm; hairline borders (0.1 mm)
 
-### Font Sizes:
-- Title: 16pt (32 half-points)
-- Data cells: 10pt (20 half-points)
-- Small text (sub-headers): 7-8pt
+## Columns (13, in mm)
 
-### Colors (RGB):
-- **PETAK header**: rgb(217, 226, 243) - Light blue
-- **SUBOTA header**: rgb(226, 239, 217) - Light green  
-- **NEDJELJA header**: rgb(237, 237, 237) - Light gray
-- **NEDOSTAJE cell**: rgb(255, 255, 229) - Light yellow
-- **Header text (PETAK/SUBOTA/NEDJELJA)**: rgb(31, 78, 121) - Dark blue
-- **"RUČAK"/"VEČERA" text**: rgb(192, 0, 0) - Red
-- **Regular text**: rgb(0, 0, 0) - Black
+| # | Column | Width |
+|---|---|---|
+| 1 | R.BR. | 11.47 |
+| 2 | PREZIME | 21.63 |
+| 3 | IME | 21.04 |
+| 4 | NEDOSTAJE | 6.67 |
+| 5 | OSTAJE – napisati razlog | 15.59 |
+| 6 | PETAK vrijeme odlaska | 13.65 |
+| 7 | PETAK prijava RUČAK | 12.91 |
+| 8 | PETAK prijava VEČERA | 14.89 |
+| 9 | SUBOTA vrijeme odlaska | 13.65 |
+| 10 | SUBOTA prijava RUČAK | 12.95 |
+| 11 | SUBOTA prijava VEČERA | 14.89 |
+| 12 | NEDJELJA prijava RUČAK | 12.95 |
+| 13 | NEDJELJA prijava VEČERA | 14.78 |
 
-### Layout:
-- **Header height**: 12mm (split into 6mm + 6mm for merged cells)
-- **Row height**: 7.5mm
-- **Start X**: 15mm (left margin)
-- **Start Y**: 30mm (below title)
-- **Border width**: 0.1mm (very thin)
+Total width ≈ 187 mm.
 
-### Header Structure:
-**Row 1** (top 6mm):
-- Columns 1-3: Single cells (R.BR., PREZIME, IME)
-- Column 4: NEDOSTAJE (yellow background)
-- Column 5: OSTAJE (dark blue text)
-- Columns 6-8: Merged "PETAK" cell (light blue)
-- Columns 9-11: Merged "SUBOTA" cell (light green)
-- Columns 12-13: Merged "NEDJELJA" cell (light gray)
+## Colours (RGB)
 
-**Row 2** (bottom 6mm):
-- Columns 1-5: Empty (merged with row 1)
-- Column 6: "vrijeme odlaska (hh:mm)" - small text
-- Column 7: "prijava RUČAK" - red text
-- Column 8: "prijava VEČERA" - red text
-- Column 9: "vrijeme odlaska (hh:mm)" - small text
-- Column 10: "prijava RUČAK" - red text
-- Column 11: "prijava VEČERA" - red text
-- Column 12: "prijava RUČAK" - red text
-- Column 13: "prijava VEČERA" - red text
+| Element | Colour |
+|---|---|
+| PETAK header | 217, 226, 243 |
+| SUBOTA header | 226, 239, 217 |
+| NEDJELJA header | 237, 237, 237 |
+| NEDOSTAJE header | 255, 255, 229 |
+| Day names | 31, 78, 121 |
+| "RUČAK" / "VEČERA" | 192, 0, 0 |
+| Other text | 0, 0, 0 |
 
-### Data Mapping:
-- NEDOSTAJE: Currently empty (for future use)
-- OSTAJE: Shows "DA" when user selected "OSTAJEM CIJELI VIKEND"
-- Vrijeme odlaska columns: Show time (e.g., "14:00") or ":" if not entered
-- Meal columns: Show "DA" if selected, empty otherwise
+## Rows
 
-### UKUPNO Row:
-- Appears after row 22 (last person)
-- "UKUPNO:" label in column 3 (IME)
-- Counts appear in bold in columns with "DA" values
-- Empty cells for time columns
+- Header block: 18 mm (two 9 mm rows; day names merged over their columns; `NEDOSTAJE` rotated 90°)
+- **One row per name on the group's list**, alphabetical (Croatian order: …C, Č, Ć, D, …S, Š, T…), numbered 1…N
+- Row height: **9 mm**, shrinking automatically when the list is longer than 24 names
+  (`min(9, 224 / (N + 1))` mm; at the 35-name maximum ≈ 6.2 mm). Row font: 10 pt, scaled with the row height.
+- Last row: `UKUPNO:` in the IME column with the counts
 
-This matches the template image EXACTLY.
+## What goes in each cell
+
+| Column | Content |
+|---|---|
+| NEDOSTAJE | `DA` when the person chose **IDEM PRIJE PETKA = DA** |
+| OSTAJE | `DA` when the person chose **OSTAJEM CIJELI VIKEND = DA** |
+| vrijeme odlaska | the time (e.g. `14:00`), or `:` when none was entered |
+| RUČAK / VEČERA | `DA` when chosen, otherwise empty |
+
+## Which submissions count
+
+- Only the **current week** and the **selected group**.
+- If a person submitted several times, **only the last submission** is used – both in the row and in `UKUPNO`.
+- `UKUPNO` counts only people who are on the group's list (a removed name is not counted).
+- A name on the list with no submission still gets a row (with `:` in the time columns).
