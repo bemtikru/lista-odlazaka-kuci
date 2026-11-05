@@ -92,6 +92,18 @@
             letter-spacing: 0.5px;
         }
         .summary-card .number { font-size: 32px; font-weight: 700; color: #667eea; }
+        .missing-card { grid-column: 1 / -1; }
+        .missing-list {
+            list-style: none;
+            margin-top: 12px;
+            columns: 3 180px;
+            column-gap: 20px;
+            font-size: 14px;
+            color: #333;
+        }
+        .missing-list:empty { display: none; }
+        .missing-list li { padding: 2px 0; break-inside: avoid; }
+        .missing-list li.missing-done { color: #2e7d32; font-weight: 600; }
         .names-panel {
             background: white;
             border-radius: 15px;
@@ -225,7 +237,6 @@
                     <select id="groupSelect" class="group-select" title="Odgojna skupina"></select>
                     <span class="week-display" id="weekDisplay"></span>
                     <button class="refresh-btn" id="refreshBtn">🔄 Osvježi</button>
-                    <button class="export-btn" id="exportBtn">📥 Izvezi CSV</button>
                     <button class="export-btn" id="generatePdfBtn">📄 PDF Izvještaj</button>
                     <button class="refresh-btn" id="logoutBtn">Odjavi se</button>
                 </div>
@@ -235,6 +246,10 @@
                 <div class="summary-card">
                     <h3>Ukupno prijava</h3>
                     <div class="number" id="totalSubmissions">0</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Ukupno promjena</h3>
+                    <div class="number" id="totalChanges">0</div>
                 </div>
                 <div class="summary-card">
                     <h3>Ručak Petak</h3>
@@ -259,6 +274,11 @@
                 <div class="summary-card">
                     <h3>Večera Nedjelja</h3>
                     <div class="number" id="nedjeljaVecera">0</div>
+                </div>
+                <div class="summary-card missing-card">
+                    <h3>Nedostaje prijava</h3>
+                    <div class="number" id="missingCount">0</div>
+                    <ul class="missing-list" id="missingList"></ul>
                 </div>
             </div>
 
@@ -434,6 +454,7 @@ AAEAAAASAQAABAAgR0RFRqZDpEwAAAOQAAACWEdQT1NOLGgfAABalAAAWPxHU1VC+5TlMQAARJwAABX2
             editing = null;
             namesList = null;
             namesFromSheet = false;
+            weekRowsCache = [];
             setNamesStatus('', false);
             renderNames();
             updateWeekDisplay();
@@ -516,13 +537,14 @@ AAEAAAASAQAABAAgR0RFRqZDpEwAAAOQAAACWEdQT1NOLGgfAABalAAAWPxHU1VC+5TlMQAARJwAABX2
                 const weekRows = result.rows;
 
                 loadingIndicator.classList.add('hidden');
+                weekRowsCache = weekRows;
+                renderSummary();
 
                 if (weekRows.length === 0) {
                     noDataMessage.classList.remove('hidden');
                 } else {
                     dataTable.classList.remove('hidden');
                     displayData(weekRows);
-                    updateSummary(weekRows);
                 }
             } catch (error) {
                 if (reqId !== loadSeq) return;
@@ -547,38 +569,54 @@ AAEAAAASAQAABAAgR0RFRqZDpEwAAAOQAAACWEdQT1NOLGgfAABalAAAWPxHU1VC+5TlMQAARJwAABX2
             });
         }
 
-        function updateSummary(rows) {
-            document.getElementById('totalSubmissions').textContent = rows.length;
-            const countDA = function(idx) { return rows.filter(function(r) { return r[idx] === 'DA'; }).length; };
-            document.getElementById('petakRucak').textContent = countDA(7);
-            document.getElementById('petakVecera').textContent = countDA(8);
-            document.getElementById('subotaRucak').textContent = countDA(10);
-            document.getElementById('subotaVecera').textContent = countDA(11);
-            document.getElementById('nedjeljaRucak').textContent = countDA(12);
-            document.getElementById('nedjeljaVecera').textContent = countDA(13);
+        // Redci stižu po vremenu prijave; za svaku osobu vrijedi zadnja (isto kao u PDF-u)
+        function latestPerPerson(rows) {
+            const map = {};
+            rows.forEach(function(r) { if (r && r[3]) map[r[3]] = r; });
+            return Object.keys(map).map(function(k) { return map[k]; });
+        }
+
+        let weekRowsCache = [];   // sve prijave ove skupine u ovom tjednu
+
+        // Statistika se računa iz prijava i popisa imena, pa se crta kad stigne jedno ili drugo
+        function renderSummary() {
+            const rows = weekRowsCache;
+            const latestAll = latestPerPerson(rows);
+            const listed = namesList ? new Set(namesList.map(function(p) { return p.p + ' ' + p.i; })) : null;
+            // samo osobe koje su na popisu - isto kao redci u PDF-u
+            const latest = listed ? latestAll.filter(function(r) { return listed.has(r[3]); }) : latestAll;
+            const el = function(id) { return document.getElementById(id); };
+
+            el('totalSubmissions').textContent = latest.length + '/' + (namesList ? namesList.length : '–');
+            el('totalChanges').textContent = rows.length - latestAll.length;   // prijave koje su zamijenile raniju prijavu iste osobe
+            const countDA = function(idx) { return latest.filter(function(r) { return r[idx] === 'DA'; }).length; };
+            el('petakRucak').textContent = countDA(7);
+            el('petakVecera').textContent = countDA(8);
+            el('subotaRucak').textContent = countDA(10);
+            el('subotaVecera').textContent = countDA(11);
+            el('nedjeljaRucak').textContent = countDA(12);
+            el('nedjeljaVecera').textContent = countDA(13);
+
+            const list = el('missingList');
+            list.innerHTML = '';
+            if (!namesList) { el('missingCount').textContent = '–'; return; }
+            const submitted = new Set(latest.map(function(r) { return r[3]; }));
+            const missing = sortNames(namesList).filter(function(p) { return !submitted.has(p.p + ' ' + p.i); });
+            el('missingCount').textContent = missing.length;
+            if (!missing.length && namesList.length) {
+                const li = document.createElement('li');
+                li.className = 'missing-done';
+                li.textContent = 'Svi su predali prijavu.';
+                list.appendChild(li);
+            }
+            missing.forEach(function(p) {
+                const li = document.createElement('li');
+                li.textContent = p.p + ' ' + p.i;
+                list.appendChild(li);
+            });
         }
 
         document.getElementById('refreshBtn').addEventListener('click', loadData);
-
-        document.getElementById('exportBtn').addEventListener('click', async function() {
-            try {
-                const currentWeek = getCurrentWeek();
-                const result = await api('getData', { skupina: currentGroup, week: currentWeek });
-                const csv = [result.header].concat(result.rows).map(function(row) {
-                    return row.map(function(cell) {
-                        const escaped = String(cell || '').replace(/"/g, '""');
-                        return escaped.indexOf(',') >= 0 ? '"' + escaped + '"' : escaped;
-                    }).join(',');
-                }).join('\n');
-                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = 'lista_os' + currentGroup + '_' + currentWeek + '.csv';
-                link.click();
-            } catch (error) {
-                alert('Greška pri izvozu: ' + error.message);
-            }
-        });
 
         document.getElementById('generatePdfBtn').addEventListener('click', async function() {
             const btn = this;
@@ -705,6 +743,7 @@ AAEAAAASAQAABAAgR0RFRqZDpEwAAAOQAAACWEdQT1NOLGgfAABalAAAWPxHU1VC+5TlMQAARJwAABX2
             });
             document.getElementById('addNameBtn').disabled = !namesFromSheet;
             document.getElementById('bulkAddBtn').disabled = !namesFromSheet;
+            renderSummary();
             if (focusEl) { focusEl.focus(); focusEl.select(); }
         }
 
@@ -851,6 +890,20 @@ AAEAAAASAQAABAAgR0RFRqZDpEwAAAOQAAACWEdQT1NOLGgfAABalAAAWPxHU1VC+5TlMQAARJwAABX2
             });
         });
 
+        // "2026-W45" -> "6.11.-8.11.2026." (petak-nedjelja tog ISO tjedna; ako vikend prelazi u novu godinu, obje godine)
+        function formatWeekend(label) {
+            const m = /^(\d{4})-W(\d{1,2})$/.exec(label);
+            if (!m) return '';
+            const year = parseInt(m[1], 10), week = parseInt(m[2], 10);
+            const jan4 = new Date(Date.UTC(year, 0, 4));
+            const monday = new Date(jan4.getTime() + ((week - 1) * 7 - ((jan4.getUTCDay() || 7) - 1)) * 86400000);
+            const day = function(offset) { return new Date(monday.getTime() + offset * 86400000); };
+            const fri = day(4), sun = day(6);
+            const dm = function(d) { return d.getUTCDate() + '.' + (d.getUTCMonth() + 1) + '.'; };
+            const start = (fri.getUTCFullYear() !== sun.getUTCFullYear()) ? dm(fri) + fri.getUTCFullYear() + '.' : dm(fri);
+            return start + '-' + dm(sun) + sun.getUTCFullYear() + '.';
+        }
+
         function generatePDF(weekRows, currentWeek) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
@@ -909,7 +962,7 @@ weekRows.forEach(function(r) {
             doc.setFontSize(16);
             doc.setFont('RobotoCondensed');
             doc.text(currentGroup+'. ODGOJNA SKUPINA',105,25,{align:'center'});
-            doc.text('ODLAZAK KUĆI ______________',105,33,{align:'center'});
+            doc.text('ODLAZAK KUĆI '+formatWeekend(currentWeek),105,33,{align:'center'});
 
             function dc(x, y, w, h, t, bg, tc, s, b, a, rot) {
     if (bg) { doc.setFillColor(bg[0], bg[1], bg[2]); doc.rect(x, y, w, h, 'F'); }
