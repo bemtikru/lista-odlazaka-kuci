@@ -252,6 +252,14 @@
                     <div class="number" id="totalChanges">0</div>
                 </div>
                 <div class="summary-card">
+                    <h3>Nedostaje</h3>
+                    <div class="number" id="awayCount">0</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Noći na petak</h3>
+                    <div class="number" id="nightsFri">0</div>
+                </div>
+                <div class="summary-card">
                     <h3>Ručak Petak</h3>
                     <div class="number" id="petakRucak">0</div>
                 </div>
@@ -260,12 +268,20 @@
                     <div class="number" id="petakVecera">0</div>
                 </div>
                 <div class="summary-card">
+                    <h3>Noći na subotu</h3>
+                    <div class="number" id="nightsSat">0</div>
+                </div>
+                <div class="summary-card">
                     <h3>Ručak Subota</h3>
                     <div class="number" id="subotaRucak">0</div>
                 </div>
                 <div class="summary-card">
                     <h3>Večera Subota</h3>
                     <div class="number" id="subotaVecera">0</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Ostaje cijeli vikend</h3>
+                    <div class="number" id="stayWeekend">0</div>
                 </div>
                 <div class="summary-card">
                     <h3>Ručak Nedjelja</h3>
@@ -590,6 +606,13 @@ AAEAAAASAQAABAAgR0RFRqZDpEwAAAOQAAACWEdQT1NOLGgfAABalAAAWPxHU1VC+5TlMQAARJwAABX2
             el('totalSubmissions').textContent = latest.length + '/' + (namesList ? namesList.length : '–');
             el('totalChanges').textContent = rows.length - latestAll.length;   // prijave koje su zamijenile raniju prijavu iste osobe
             const countDA = function(idx) { return latest.filter(function(r) { return r[idx] === 'DA'; }).length; };
+            // NEDOSTAJE = IDEM PRIJE PETKA: DA; NOĆI NA PETAK = svi članovi minus oni koji nedostaju;
+            // NOĆI NA SUBOTU = članovi s upisanim vremenom odlaska u subotu; OSTAJE CIJELI VIKEND = DA
+            const away = countDA(4);
+            el('awayCount').textContent = away;
+            el('nightsFri').textContent = namesList ? (namesList.length - away) : '–';
+            el('nightsSat').textContent = latest.filter(function(r) { return /\d/.test(r[9] || ''); }).length;
+            el('stayWeekend').textContent = countDA(5);
             el('petakRucak').textContent = countDA(7);
             el('petakVecera').textContent = countDA(8);
             el('subotaRucak').textContent = countDA(10);
@@ -1037,7 +1060,7 @@ weekRows.forEach(function(r) {
 
             const uY=sY+hH+(people.length*rH);
             x=sX;
-            const tot = { ne: 0, os: 0, pR: 0, pV: 0, sR: 0, sV: 0, nR: 0, nV: 0 };
+            const tot = { ne: 0, os: 0, pR: 0, pV: 0, sR: 0, sV: 0, nR: 0, nV: 0, sT: 0 };
             
             // Zbroj samo za osobe koje su na popisu (zadnja prijava svake osobe), isto kao redci u tablici
             people.forEach(function(pe){
@@ -1045,6 +1068,7 @@ weekRows.forEach(function(r) {
                 if(!d) return;
                 if(d.ne==='DA')tot.ne++;
                 if(d.os==='DA')tot.os++;
+                if(/\d/.test(d.sO))tot.sT++;   // upisano vrijeme odlaska u subotu
                 if(d.pR==='DA')tot.pR++;
                 if(d.pV==='DA')tot.pV++;
                 if(d.sR==='DA')tot.sR++;
@@ -1058,10 +1082,12 @@ weekRows.forEach(function(r) {
             dc(x,uY,cW[2],rH,'UKUPNO:',null,[0,0,0],rowFs,1,'left');x+=cW[2];
             dc(x,uY,cW[3],rH,tot.ne||'',null,[0,0,0],rowFs,1,'center');x+=cW[3];
             dc(x,uY,cW[4],rH,tot.os||'',null,[0,0,0],rowFs,1,'center');x+=cW[4];
-            dc(x,uY,cW[5],rH,'',null,[0,0,0],rowFs,0,'center');x+=cW[5];
+            // NOĆI NA PETAK = svi članovi s popisa minus oni s DA na IDEM PRIJE PETKA
+            dc(x,uY,cW[5],rH,(people.length-tot.ne)||'',null,[0,0,0],rowFs,1,'center');x+=cW[5];
             dc(x,uY,cW[6],rH,tot.pR||'',null,[0,0,0],rowFs,1,'center');x+=cW[6];
             dc(x,uY,cW[7],rH,tot.pV||'',null,[0,0,0],rowFs,1,'center');x+=cW[7];
-            dc(x,uY,cW[8],rH,'',null,[0,0,0],rowFs,0,'center');x+=cW[8];
+            // NOĆI NA SUBOTU = članovi s upisanim vremenom odlaska u subotu
+            dc(x,uY,cW[8],rH,tot.sT||'',null,[0,0,0],rowFs,1,'center');x+=cW[8];
             dc(x,uY,cW[9],rH,tot.sR||'',null,[0,0,0],rowFs,1,'center');x+=cW[9];
             dc(x,uY,cW[10],rH,tot.sV||'',null,[0,0,0],rowFs,1,'center');x+=cW[10];
             dc(x,uY,cW[11],rH,tot.nR||'',null,[0,0,0],rowFs,1,'center');x+=cW[11];
