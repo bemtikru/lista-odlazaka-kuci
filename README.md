@@ -65,7 +65,13 @@ Weeks are ISO weeks (Monday–Sunday), labelled like `2026-W45`; a new week star
 - See live statistics for the week, counted from each person's **latest** submission:
   - **Ukupno prijava** – `x/y`: members who have submitted / members on the list
   - **Ukupno promjena** – how many submissions replaced an earlier one by the same person
-  - meal counters for Friday, Saturday and Sunday
+  - **Nedostaje** – members who chose DA on IDEM PRIJE PETKA
+  - **Noći na petak** – all members on the list minus *Nedostaje*
+  - **Ručak / Večera Petak**
+  - **Noći na subotu** – members who entered a departure time on Saturday
+  - **Ručak / Večera Subota**
+  - **Ostaje cijeli vikend** – members who chose DA on OSTAJEM CIJELI VIKEND
+  - **Ručak / Večera Nedjelja**
   - **Nedostaje prijava** – how many members have not submitted yet, with their names
 - **Add, edit (Uredi) and remove names** of the group, including *Dodaj više imena odjednom*
   (paste one `Prezime Ime` per line; use a comma for double surnames: `Marić Kovač, Ana Maria`)
@@ -107,6 +113,7 @@ Weeks are ISO weeks (Monday–Sunday), labelled like `2026-W45`; a new week star
 | Admin: "Sesija je istekla" | Session older than 12 h – sign in again |
 | Student: "Ime nije na popisu ove odgojne skupine" | Wrong group link, or an admin removed/renamed the name |
 | Page shows old behaviour after an update | Browser cache – hard refresh (Ctrl+F5) |
+| No Google sign-in button, or "Google prijava se nije učitala" | The browser or an ad blocker blocks `accounts.google.com` – refresh, or allow it for this site |
 | Google shows "unverified app" when authorizing the script | Normal for your own Apps Script: Advanced → Go to … (unsafe) → Allow |
 
 More in `SETUP.md`.

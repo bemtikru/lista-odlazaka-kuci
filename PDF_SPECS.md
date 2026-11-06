@@ -51,7 +51,7 @@ Total width ≈ 187 mm.
 - **One row per name on the group's list**, alphabetical (Croatian order: …C, Č, Ć, D, …S, Š, T…), numbered 1…N
 - Row height: **9 mm**, shrinking automatically when the list is longer than 24 names
   (`min(9, 224 / (N + 1))` mm; at the 35-name maximum ≈ 6.2 mm). Row font: 10 pt, scaled with the row height.
-- Last row: `UKUPNO:` in the IME column with the counts
+- Last row: `UKUPNO:` in the IME column with the totals (see *UKUPNO row* below)
 
 ## What goes in each cell
 
@@ -68,3 +68,16 @@ Total width ≈ 187 mm.
 - If a person submitted several times, **only the latest submission (by Timestamp, not by row position in the sheet)** is used – in the row, in `UKUPNO`, and in the dashboard's summary cards.
 - `UKUPNO` counts only people who are on the group's list (a removed name is not counted).
 - A name on the list with no submission still gets a row (with `:` in the time columns).
+
+## UKUPNO row
+
+| Column | Total |
+|---|---|
+| NEDOSTAJE | members with `DA` on IDEM PRIJE PETKA |
+| OSTAJE | members with `DA` on OSTAJEM CIJELI VIKEND |
+| PETAK vrijeme odlaska | **noći na petak** = all members on the list minus the NEDOSTAJE total |
+| SUBOTA vrijeme odlaska | **noći na subotu** = members who entered a departure time on Saturday |
+| RUČAK / VEČERA columns | members with `DA` |
+
+The same numbers appear in the dashboard cards (*Nedostaje*, *Noći na petak*, *Noći na subotu*, *Ostaje cijeli vikend*).
+A total of 0 is left blank. Members without a submission count as present (they are part of "all members").
