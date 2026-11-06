@@ -824,6 +824,7 @@
             setupOstajemCijeliVikendLogic();
             setupPetakVrijemeOdlaskaLogic();
             setupSubotaVrijemeOdlaskaLogic();
+            setupDepartureMealLogic();
         });
 
         // Handle IDEM PRIJE PETKA logic
@@ -1081,6 +1082,49 @@
             
             // Initialize on page load
             updateFields();
+        }
+        // Obroci ovise o vremenu odlaska (isto za petak i subotu):
+        //   5:00 - 11:00   -> ručak i večera nisu dostupni
+        //   12:00 - 16:00  -> dostupan samo ručak
+        //   17:00 i kasnije -> dostupni ručak i večera
+        function mealsAllowedForTime(timeValue) {
+            const hour = parseInt(String(timeValue || '').split(':')[0], 10);
+            if (isNaN(hour)) return { rucak: true, vecera: true };   // "-" = nije odabrano vrijeme
+            if (hour < 12) return { rucak: false, vecera: false };
+            if (hour < 17) return { rucak: true, vecera: false };
+            return { rucak: true, vecera: true };
+        }
+
+        function setupDepartureMealLogic() {
+            const form = document.getElementById('dataForm');
+            const field = (name) => form.querySelector('select[name="' + name + '"]');
+            const idem = field('idem_prije_petka');
+            const petakTime = field('petak_vrijeme_odlaska');
+            const subotaTime = field('subota_vrijeme_odlaska');
+
+            // blocked(): ostala pravila već drže ove obroke isključenima - tada ih ovdje ne diramo
+            function applyMeals(timeSelect, rucakName, veceraName, blocked) {
+                if (blocked()) return;
+                const allowed = mealsAllowedForTime(timeSelect.value);
+                [[field(rucakName), allowed.rucak], [field(veceraName), allowed.vecera]].forEach(([select, isAllowed]) => {
+                    select.disabled = !isAllowed;
+                    if (!isAllowed) select.value = '-';
+                });
+            }
+
+            petakTime.addEventListener('change', () =>
+                applyMeals(petakTime, 'petak_rucak', 'petak_vecera', () => idem.value === 'DA'));
+            subotaTime.addEventListener('change', () =>
+                applyMeals(subotaTime, 'subota_rucak', 'subota_vecera', () => idem.value === 'DA' || petakTime.value !== '-'));
+
+            // Nakon reset() (slanje prijave, odjava) vrijednosti se vrate na "-", ali polja su ostajala zasivljena.
+            // Zato se nakon reseta sva pravila ponovno primijene.
+            form.addEventListener('reset', () => {
+                setTimeout(() => {
+                    ['idem_prije_petka', 'ostajem_cijeli_vikend', 'petak_vrijeme_odlaska', 'subota_vrijeme_odlaska']
+                        .forEach((name) => field(name).dispatchEvent(new Event('change')));
+                }, 0);
+            });
         }
     </script>
 </body>

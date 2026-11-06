@@ -78,12 +78,19 @@ Weeks are ISO weeks (Monday–Sunday), labelled like `2026-W45`; a new week star
 - Editing a name also renames that person's existing submissions in the same group, so this week's
   data still matches the list
 
-## Form rules for students (unchanged)
+## Form rules for students
 
 - **IDEM PRIJE PETKA = DA** disables everything below it
 - **OSTAJEM CIJELI VIKEND = DA** disables IDEM PRIJE PETKA and both "vrijeme odlaska" fields
 - A time in **PETAK VRIJEME ODLASKA** disables IDEM/OSTAJEM and the Saturday + Sunday sections
 - A time in **SUBOTA VRIJEME ODLASKA** disables IDEM/OSTAJEM, Friday time and the Sunday section
+- The departure time on **PETAK** and on **SUBOTA** decides that day's meals:
+  - 5:00 – 11:00 → ručak and večera are locked
+  - 12:00 – 16:00 → only ručak is available (večera locked)
+  - 17:00 or later → both available
+
+  Locked meals are cleared and stay empty in the sheet. Changing the time re-applies the rule.
+- After a submission (or logout) the form is cleared and every field is available again, so a correction can be sent at once
 - An empty report cannot be sent: a time, or DA on IDEM PRIJE PETKA / OSTAJEM CIJELI VIKEND is required
 
 ## Security model (short version)
