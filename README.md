@@ -54,8 +54,9 @@ without `?skupina=` opens the last group you used (or `DEFAULT_GROUP` from `conf
 | `Imena` | A Prezime · B Ime · C Skupina | The names shown in each group's drop-down and on the PDF |
 | `Admini` | A Email · B Skupine | `*` = all groups, or e.g. `3` or `3,5` |
 
-Weeks are ISO weeks (Monday–Sunday), labelled like `2026-W45`; a new week starts on Monday at midnight
-(by the clock of the device in use). Old data is kept in the sheet.
+A **week runs from Saturday 00:00 to Friday 23:59** and is the list for the weekend that follows (Friday–Sunday).
+It is labelled with the ISO week of that weekend, e.g. `2026-W46` for the weekend 13.–15.11.2026. From Saturday
+00:00 the pages show the next, empty week (by the clock of the device in use). Old data is kept in the sheet.
 
 ## What admins can do
 

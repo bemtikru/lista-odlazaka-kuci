@@ -627,8 +627,11 @@
         // Get current week identifier
         function getCurrentWeek() {
             const now = new Date();
-            const year = getWeekYear(now);
-            const weekNum = getWeekNumber(now);
+            // Tjedan traje od subote 00:00 do petka 23:59 i vrijedi za vikend koji slijedi (petak-nedjelja).
+            // Oznaka je ISO tjedan tog vikenda, pa od subote 00:00 počinje lista za sljedeći vikend.
+            const weekend = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 2);
+            const year = getWeekYear(weekend);
+            const weekNum = getWeekNumber(weekend);
             return `${year}-W${weekNum}`;
         }
 
