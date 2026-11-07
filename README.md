@@ -13,10 +13,10 @@ Everything is in Croatian in the user interface.
  Students ── index.html?skupina=N ──┐
                                     ├──►  Google Apps Script web app  ◄──►  Google Sheet
  Admins ──── admin.html?skupina=N ──┘     (Code.gs – the only thing that
-        (Netlify, static files)             reads or writes the sheet)
+        (Vercel, static files)              reads or writes the sheet)
 ```
 
-- **Netlify** hosts three static files: `index.html`, `admin.html`, `config.js`.
+- **Vercel** (any static host would do) serves three static files: `index.html`, `admin.html`, `config.js`.
 - **Google Sign-In** identifies people (students: their email is saved with the submission;
   admins: checked against the `Admini` tab).
 - **Apps Script** (`Code.gs`, bound to the spreadsheet) is the gatekeeper. The spreadsheet itself
@@ -26,8 +26,8 @@ Everything is in Croatian in the user interface.
 
 | Who | Link |
 |---|---|
-| Students of group 3 | `https://YOUR-SITE.netlify.app/?skupina=3` |
-| Admin of group 3 | `https://YOUR-SITE.netlify.app/admin?skupina=3` |
+| Students of group 3 | `https://YOUR-SITE.vercel.app/?skupina=3` |
+| Admin of group 3 | `https://YOUR-SITE.vercel.app/admin.html?skupina=3` |
 | Superadmin | same admin link, then switch groups in the drop-down |
 
 A student link without `?skupina=` shows a chooser (1.–7. odgojna skupina). The admin page
@@ -40,8 +40,8 @@ without `?skupina=` opens the last group you used (or `DEFAULT_GROUP` from `conf
 | `index.html` | Student form (Google login, group-specific names, conditional dropdown rules) |
 | `admin.html` | Admin page: weekly table, statistics, PDF, names management |
 | `config.js` | Shared settings: Client ID, webhook URL, number of groups |
-| `Code.gs` | Apps Script – **paste into the script editor, not deployed to Netlify** |
-| `_redirects` | Netlify rule: `/admin` → `admin.html` |
+| `Code.gs` | Apps Script – **paste into the script editor, not deployed to Vercel** |
+| `vercel.json` | Optional Vercel settings, e.g. the short link `/admin` → `admin.html` (see `SETUP.md`) |
 | `SETUP.md` | Installation, upgrading, adding groups/admins, locking down the sheet |
 | `CONFIG_GUIDE.md` | Every setting and where it lives |
 | `PDF_SPECS.md` | Layout of the printed list |

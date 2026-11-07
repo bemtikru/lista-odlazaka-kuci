@@ -62,5 +62,5 @@ After changing `Code.gs`: **Deploy → Manage deployments → ✏️ → Version
 - Pasting a **new deployment** URL after "New deployment" – the URL changes; use *Manage deployments → edit → New version* instead.
 - Editing `Code.gs` and forgetting to publish a new version.
 - `GROUP_COUNT` different in the two files (links beyond the smaller number are rejected).
-- Forgetting to add the Netlify address to *Authorized JavaScript origins* (Google login fails with `origin_mismatch`).
+- Forgetting to add the site address (the Vercel address, and your own domain if you use one) to *Authorized JavaScript origins* (Google login fails with `origin_mismatch`).
 - Keeping the spreadsheet shared publicly – set it to **Restricted**; the script does not need public access.

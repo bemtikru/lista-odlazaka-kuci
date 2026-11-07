@@ -28,8 +28,8 @@ Do the steps **in this order**, and do step 8 last.
 4. **Publish the new script version.** *Deploy → Manage deployments → ✏️ (edit) on the existing
    deployment → Version: **New version** → Deploy.*
    Do **not** choose "New deployment" – that would change the URL.
-5. **Upload the site files** (GitHub → Netlify redeploys automatically):
-   `config.js` (new), `index.html`, `admin.html`, `_redirects`, and the docs.
+5. **Upload the site files** (GitHub → Vercel redeploys automatically):
+   `config.js` (new), `index.html`, `admin.html`, and the docs.
    Do this right after step 4. In between, students' old pages keep working (their submissions are
    stored as group 7), but the *old* admin page can no longer edit names.
 6. **Test.**
@@ -58,7 +58,7 @@ and the previous HTML files are in your GitHub history.
    audience **External**. If it is in *Testing*, add the Google accounts that may sign in as test
    users, or publish it (basic sign-in needs no Google verification).
 3. *Credentials → Create credentials → OAuth client ID → Web application*.
-   **Authorized JavaScript origins:** `https://YOUR-SITE.netlify.app` (and your own domain if you
+   **Authorized JavaScript origins:** `https://YOUR-SITE.vercel.app` (and your own domain if you
    use one). No redirect URIs are needed.
 4. Copy the **Client ID**.
 
@@ -83,11 +83,23 @@ and the previous HTML files are in your GitHub history.
 Edit `config.js`: `GOOGLE_CLIENT_ID`, `WEBHOOK_URL` (the Web app URL), `GROUP_COUNT`,
 `DEFAULT_GROUP`. Nothing else in the HTML files needs editing – see `CONFIG_GUIDE.md`.
 
-### 5. Netlify
+### 5. Vercel
 
-Put `index.html`, `admin.html`, `config.js`, `_redirects` in the GitHub repository root and connect the
-repository to a Netlify site (no build command, publish directory = root). Every push redeploys.
-Then add the Netlify address to the OAuth client's authorized origins (step 1.3).
+Put `index.html`, `admin.html` and `config.js` in the GitHub repository root and import the repository
+into Vercel (framework preset **Other**, no build command, output directory = root). Every push redeploys.
+Then add the Vercel address to the OAuth client's authorized origins (step 1.3).
+
+Optional – a short admin link `/admin?skupina=3`. Without it, use `/admin.html?skupina=3`, which always works.
+To enable the short link, add this to `vercel.json` (merge it with whatever is already in the file):
+
+```json
+{
+  "rewrites": [ { "source": "/admin", "destination": "/admin.html" } ]
+}
+```
+
+If `vercel.json` has `"cleanUrls": true`, `/admin` already works and nothing is needed.
+The file `_redirects` is Netlify-only and is ignored on Vercel – you can delete it.
 
 ### 6. First test
 
@@ -139,7 +151,7 @@ typos and that they chose the right Google account.
 **"Ime nije na popisu ove odgojne skupine".** The student opened the wrong group's link, or an admin
 removed/renamed their name. Check the names panel.
 
-**Changes not visible after upload.** Wait for Netlify to finish deploying, then Ctrl+F5.
+**Changes not visible after upload.** Wait for Vercel to finish deploying (the deployment must show *Ready*), then Ctrl+F5.
 
 **"Google hasn't verified this app" when authorizing the script.** Expected for your own script:
 Advanced → Go to … (unsafe) → Allow.
