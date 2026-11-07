@@ -75,9 +75,9 @@ Total width ≈ 187 mm.
 |---|---|
 | NEDOSTAJE | members with `DA` on IDEM PRIJE PETKA |
 | OSTAJE | members with `DA` on OSTAJEM CIJELI VIKEND |
-| PETAK vrijeme odlaska | **noći na petak** = all members on the list minus the NEDOSTAJE total |
+| PETAK vrijeme odlaska | **noći na petak** = members who set a Friday or Saturday departure time or stay the whole weekend, excluding IDEM PRIJE PETKA |
 | SUBOTA vrijeme odlaska | **noći na subotu** = members who entered a departure time on Saturday |
 | RUČAK / VEČERA columns | members with `DA` |
 
 The same numbers appear in the dashboard cards (*Nedostaje*, *Noći na petak*, *Noći na subotu*, *Ostaje cijeli vikend*).
-A total of 0 is left blank. Members without a submission count as present (they are part of "all members").
+A total of 0 is left blank. Members without a submission are not counted in these totals.

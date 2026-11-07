@@ -67,7 +67,8 @@ It is labelled with the ISO week of that weekend, e.g. `2026-W46` for the weeken
   - **Ukupno prijava** – `x/y`: members who have submitted / members on the list
   - **Ukupno promjena** – how many submissions replaced an earlier one by the same person
   - **Nedostaje** – members who chose DA on IDEM PRIJE PETKA
-  - **Noći na petak** – all members on the list minus *Nedostaje*
+  - **Noći na petak** – members who set a Friday or Saturday departure time, or stay the whole weekend (everyone except
+    IDEM PRIJE PETKA; members who have not submitted are not counted)
   - **Ručak / Večera Petak**
   - **Noći na subotu** – members who entered a departure time on Saturday
   - **Ručak / Večera Subota**
