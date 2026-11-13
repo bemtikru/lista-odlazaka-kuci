@@ -135,7 +135,7 @@
         .names-list { max-height: 420px; overflow-y: auto; border-top: 1px solid #e0e0e0; }
         .name-row {
             display: grid;
-            grid-template-columns: 40px 1fr 1fr auto;
+            grid-template-columns: 40px 1fr 1fr 1.7fr auto;
             gap: 10px;
             align-items: center;
             padding: 8px 4px;
@@ -145,6 +145,8 @@
         }
         .name-row:hover { background: #f5f5f5; }
         .name-row .num { color: #999; text-align: right; }
+        .name-mail { font-size: 12px; color: #555; word-break: break-all; }
+        .name-mail.none { color: #b26a00; font-style: italic; }
         .name-remove {
             background: white;
             color: #c62828;
@@ -187,6 +189,7 @@
         .name-row input:focus { outline: none; border-color: #764ba2; }
         @media (max-width: 600px) {
             .name-row { grid-template-columns: 30px 1fr 1fr; }
+            .name-mail { grid-column: 2 / -1; }
             .name-actions { grid-column: 1 / -1; }
         }
         .group-select {
@@ -301,19 +304,21 @@
             <details class="names-panel" id="namesPanel">
                 <summary>👥 Upravljanje imenima <span id="namesCount" style="color:#999;font-weight:400;"></span></summary>
                 <div class="names-body">
-                    <p class="names-hint">Promjene se odmah primjenjuju na obrazac za učenike i na PDF. Prošle prijave ostaju u tablici.</p>
+                    <p class="names-hint">Promjene se odmah primjenjuju na obrazac za učenike i na PDF. Prošle prijave ostaju u tablici. E-pošta povezuje Google račun člana s njegovim imenom: član se prijavi i odmah vidi svoje ime i zadnju prijavu (do 3 adrese po članu, adresa pripada samo jednom članu).</p>
                     <div class="names-add">
                         <input type="text" id="newPrezime" placeholder="Prezime" maxlength="40" autocomplete="off">
                         <input type="text" id="newIme" placeholder="Ime" maxlength="40" autocomplete="off">
+                        <input type="text" id="newEmail" placeholder="E-pošta (neobavezno; više adresa odvojite zarezom)" maxlength="200" autocomplete="off">
                         <button class="refresh-btn" id="addNameBtn">➕ Dodaj</button>
                     </div>
                     <details class="names-bulk">
                         <summary>Dodaj više imena odjednom</summary>
-                        <textarea id="bulkNames" rows="6" placeholder="Jedan red po osobi, npr.&#10;Horvat Ivan&#10;Marić Kovač, Ana Maria"></textarea>
-                        <p class="names-hint">Prvi dio retka je prezime, ostalo je ime. Za dvostruka prezimena upotrijebite zarez ("Marić Kovač, Ana Maria"). Možete zalijepiti i dva stupca iz tablice.</p>
+                        <textarea id="bulkNames" rows="6" placeholder="Jedan red po osobi, npr.&#10;Horvat Ivan ivan@gmail.com&#10;Marić Kovač, Ana Maria, ana@gmail.com"></textarea>
+                        <p class="names-hint">Prvi dio retka je prezime, ostalo je ime. Za dvostruka prezimena upotrijebite zarez ("Marić Kovač, Ana Maria"). Adresu e-pošte možete dodati na kraj retka. Možete zalijepiti i stupce iz tablice.</p>
                         <button class="refresh-btn" id="bulkAddBtn">➕ Dodaj sve</button>
                     </details>
                     <div class="names-status" id="namesStatus"></div>
+                    <div class="names-hint" id="namesMailInfo"></div>
                     <div class="names-list" id="namesList"></div>
                 </div>
             </details>
@@ -613,14 +618,14 @@ AAEAAAASAQAABAAgR0RFRqZDpEwAAAOQAAACWEdQT1NOLGgfAABalAAAWPxHU1VC+5TlMQAARJwAABX2
             const countDA = function(idx) { return latest.filter(function(r) { return r[idx] === 'DA'; }).length; };
             // NEDOSTAJE = IDEM PRIJE PETKA: DA
             // NOĆI NA PETAK = članovi koji odlaze u petak ili u subotu ili ostaju cijeli vikend (bez onih s IDEM PRIJE PETKA)
-            // NOĆI NA SUBOTU = članovi s upisanim vremenom odlaska u subotu; OSTAJE CIJELI VIKEND = DA
+            // NOĆI NA SUBOTU = članovi s upisanim vremenom odlaska u subotu; OSTAJE CIJELI VIKEND = odabran bilo koji razlog
             const away = countDA(4);
             el('awayCount').textContent = away;
             el('nightsFri').textContent = namesList ? latest.filter(function(r) {
-                return r[4] !== 'DA' && (/\d/.test(r[6] || '') || /\d/.test(r[9] || '') || r[5] === 'DA');
+                return r[4] !== 'DA' && (/\d/.test(r[6] || '') || /\d/.test(r[9] || '') || (r[5] && r[5] !== '-'));
             }).length : '–';
             el('nightsSat').textContent = latest.filter(function(r) { return /\d/.test(r[9] || ''); }).length;
-            el('stayWeekend').textContent = countDA(5);
+            el('stayWeekend').textContent = latest.filter(function(r) { return r[5] && r[5] !== '-'; }).length;
             el('petakRucak').textContent = countDA(7);
             el('petakVecera').textContent = countDA(8);
             el('subotaRucak').textContent = countDA(10);
@@ -686,12 +691,12 @@ AAEAAAASAQAABAAgR0RFRqZDpEwAAAOQAAACWEdQT1NOLGgfAABalAAAWPxHU1VC+5TlMQAARJwAABX2
         }
 
         function normalizeNames(raw) {
-            return sortNames(raw.map(function(n) { return { p: String(n.p), i: String(n.i) }; }));
+            return sortNames(raw.map(function(n) { return { p: String(n.p), i: String(n.i), e: String(n.e || '') }; }));
         }
 
         function getPeopleForPdf() {
             const base = namesList || [];
-            return sortNames(base).map(function(x, idx) { return { n: idx + 1, p: x.p, i: x.i }; });
+            return sortNames(base).map(function(x, idx) { return { n: idx + 1, p: x.p, i: x.i, e: x.e || '' }; });
         }
 
         function setNamesStatus(text, isError) {
@@ -727,6 +732,9 @@ AAEAAAASAQAABAAgR0RFRqZDpEwAAAOQAAACWEdQT1NOLGgfAABalAAAWPxHU1VC+5TlMQAARJwAABX2
             let focusEl = null;
             list.innerHTML = '';
             document.getElementById('namesCount').textContent = '(' + people.length + ')';
+            const noMail = people.filter(function(pe) { return !pe.e; }).length;
+            document.getElementById('namesMailInfo').textContent = !people.length ? ''
+                : (noMail ? 'Bez e-pošte: ' + noMail + ' od ' + people.length : 'Svi članovi imaju e-poštu.');
             people.forEach(function(pe) {
                 const row = document.createElement('div');
                 row.className = 'name-row';
@@ -740,9 +748,12 @@ AAEAAAASAQAABAAgR0RFRqZDpEwAAAOQAAACWEdQT1NOLGgfAABalAAAWPxHU1VC+5TlMQAARJwAABX2
                 if (editing && editing.p === pe.p && editing.i === pe.i) {
                     const pIn = makeEditInput(editing.np, function(v) { editing.np = v; });
                     const iIn = makeEditInput(editing.ni, function(v) { editing.ni = v; });
+                    const eIn = makeEditInput(editing.ne, function(v) { editing.ne = v; });
+                    eIn.maxLength = 200;
+                    eIn.placeholder = 'e-pošta (više adresa odvojite zarezom)';
                     const save = makeButton('name-save', 'Spremi', function() { saveEdit(save); }, false);
                     const cancel = makeButton('name-edit', 'Odustani', function() { editing = null; renderNames(); }, false);
-                    [pIn, iIn].forEach(function(inp) {
+                    [pIn, iIn, eIn].forEach(function(inp) {
                         inp.addEventListener('keydown', function(e) {
                             if (e.key === 'Enter') save.click();
                             if (e.key === 'Escape') cancel.click();
@@ -750,6 +761,7 @@ AAEAAAASAQAABAAgR0RFRqZDpEwAAAOQAAACWEdQT1NOLGgfAABalAAAWPxHU1VC+5TlMQAARJwAABX2
                     });
                     row.appendChild(pIn);
                     row.appendChild(iIn);
+                    row.appendChild(eIn);
                     actions.appendChild(save);
                     actions.appendChild(cancel);
                     if (editing.fresh) { focusEl = pIn; editing.fresh = false; }
@@ -758,10 +770,14 @@ AAEAAAASAQAABAAgR0RFRqZDpEwAAAOQAAACWEdQT1NOLGgfAABalAAAWPxHU1VC+5TlMQAARJwAABX2
                     p.textContent = pe.p;
                     const i = document.createElement('span');
                     i.textContent = pe.i;
+                    const mail = document.createElement('span');
+                    mail.className = 'name-mail' + (pe.e ? '' : ' none');
+                    mail.textContent = pe.e || 'nema e-pošte';
                     row.appendChild(p);
                     row.appendChild(i);
+                    row.appendChild(mail);
                     const editBtn = makeButton('name-edit', 'Uredi', function() {
-                        editing = { p: pe.p, i: pe.i, np: pe.p, ni: pe.i, fresh: true };
+                        editing = { p: pe.p, i: pe.i, e: pe.e, np: pe.p, ni: pe.i, ne: pe.e, fresh: true };
                         setNamesStatus('', false);
                         renderNames();
                     }, !namesFromSheet);
@@ -783,9 +799,8 @@ AAEAAAASAQAABAAgR0RFRqZDpEwAAAOQAAACWEdQT1NOLGgfAABalAAAWPxHU1VC+5TlMQAARJwAABX2
             const group = currentGroup;
             const seq = ++namesSeq;
             try {
-                const response = await fetch(CONFIG.WEBHOOK_URL + '?action=names&skupina=' + group);
-                const result = await response.json();
-                if (!result.success || !Array.isArray(result.names)) throw new Error(result.error || 'Neispravan odgovor');
+                const result = await api('listNames', { skupina: group });   // s e-poštom, samo za prijavljenog admina
+                if (!Array.isArray(result.names)) throw new Error('Neispravan odgovor');
                 if (seq !== namesSeq || group !== currentGroup) return;
                 namesList = normalizeNames(result.names);
                 namesFromSheet = true;
@@ -813,17 +828,22 @@ AAEAAAASAQAABAAgR0RFRqZDpEwAAAOQAAACWEdQT1NOLGgfAABalAAAWPxHU1VC+5TlMQAARJwAABX2
             if (!editing) return;
             const np = editing.np.replace(/\s+/g, ' ').trim();
             const ni = editing.ni.replace(/\s+/g, ' ').trim();
+            const normMails = function(t) { return String(t || '').toLowerCase().split(/[\s,;]+/).filter(Boolean).join(','); };
+            const nameChanged = !(np === editing.p && ni === editing.i);
+            const mailsChanged = normMails(editing.ne) !== normMails(editing.e);
             if (!np || !ni) { setNamesStatus('Unesite prezime i ime.', true); return; }
-            if (np === editing.p && ni === editing.i) { editing = null; renderNames(); return; }
-            if (!confirm('Promijeniti "' + editing.p + ' ' + editing.i + '" u "' + np + ' ' + ni + '"?\n\nPostojeće prijave ove osobe u tablici dobit će novo ime (da se ispravno prikazuju u PDF-u).')) return;
+            if (!nameChanged && !mailsChanged) { editing = null; renderNames(); return; }
+            if (nameChanged && !confirm('Promijeniti "' + editing.p + ' ' + editing.i + '" u "' + np + ' ' + ni + '"?\n\nPostojeće prijave ove osobe u tablici dobit će novo ime (da se ispravno prikazuju u PDF-u).')) return;
             const oldP = editing.p, oldI = editing.i;
             btn.disabled = true;
             try {
-                const result = await nameAction('editName', oldP, oldI, { newPrezime: np, newIme: ni });
+                const result = await nameAction('editName', oldP, oldI, { newPrezime: np, newIme: ni, newEmails: editing.ne });
                 editing = null;
                 renderNames();
                 const n = result.updatedSubmissions || 0;
-                setNamesStatus('Uređeno: ' + oldP + ' ' + oldI + ' → ' + np + ' ' + ni + (n ? ' (ažurirano prijava: ' + n + ')' : ''), false);
+                setNamesStatus(nameChanged
+                    ? 'Uređeno: ' + oldP + ' ' + oldI + ' → ' + np + ' ' + ni + (n ? ' (ažurirano prijava: ' + n + ')' : '')
+                    : 'Spremljena e-pošta: ' + np + ' ' + ni, false);
             } catch (error) {
                 setNamesStatus(error.message, true);
                 btn.disabled = false;
@@ -842,25 +862,27 @@ AAEAAAASAQAABAAgR0RFRqZDpEwAAAOQAAACWEdQT1NOLGgfAABalAAAWPxHU1VC+5TlMQAARJwAABX2
             }
         }
 
-        // "Prezime Ime" po retku. Zarez ili tabulator odvajaju prezime od imena (za dvostruka prezimena).
+        // "Prezime Ime [e-pošta]" po retku. Zarez ili tabulator odvajaju prezime od imena (za dvostruka prezimena).
         function parseBulkNames(text) {
             const names = [], bad = [];
             text.split(/\r?\n/).forEach(function(raw) {
                 const line = raw.trim();
                 if (!line) return;
+                const mails = line.match(/[^\s,;\t]+@[^\s,;\t]+/g) || [];
+                const rest = line.replace(/[^\s,;\t]+@[^\s,;\t]+/g, ' ').replace(/[\s,;]+$/, '').trim();   // bez zaostalih zareza nakon e-pošte
                 let p = '', i = '';
-                const sep = line.indexOf('\t') >= 0 ? '\t' : (line.indexOf(',') >= 0 ? ',' : null);
+                const sep = rest.indexOf('\t') >= 0 ? '\t' : (rest.indexOf(',') >= 0 ? ',' : null);
                 if (sep) {
-                    const parts = line.split(sep);
+                    const parts = rest.split(sep);
                     p = parts[0];
                     i = parts.slice(1).join(' ');
                 } else {
-                    const k = line.indexOf(' ');
-                    if (k > 0) { p = line.slice(0, k); i = line.slice(k + 1); }
+                    const k = rest.indexOf(' ');
+                    if (k > 0) { p = rest.slice(0, k); i = rest.slice(k + 1); }
                 }
                 p = p.replace(/\s+/g, ' ').trim();
-                i = i.replace(/\s+/g, ' ').trim();
-                if (p && i) names.push({ prezime: p, ime: i }); else bad.push(line);
+                i = i.replace(/[\s,;]+/g, ' ').trim();
+                if (p && i) names.push({ prezime: p, ime: i, email: mails.join(', ') }); else bad.push(line);
             });
             return { names: names, bad: bad };
         }
@@ -896,6 +918,7 @@ AAEAAAASAQAABAAgR0RFRqZDpEwAAAOQAAACWEdQT1NOLGgfAABalAAAWPxHU1VC+5TlMQAARJwAABX2
             const iEl = document.getElementById('newIme');
             const p = pEl.value.replace(/\s+/g, ' ').trim();
             const i = iEl.value.replace(/\s+/g, ' ').trim();
+            const eEl = document.getElementById('newEmail');
             if (!p || !i) { setNamesStatus('Unesite prezime i ime.', true); return; }
             if (namesList && namesList.length >= MAX_NAMES) {
                 setNamesStatus('Dosegnut je najveći broj imena (' + MAX_NAMES + ').', true);
@@ -904,9 +927,10 @@ AAEAAAASAQAABAAgR0RFRqZDpEwAAAOQAAACWEdQT1NOLGgfAABalAAAWPxHU1VC+5TlMQAARJwAABX2
             const btn = this;
             btn.disabled = true;
             try {
-                await nameAction('addName', p, i);
+                await nameAction('addName', p, i, { emails: eEl.value });
                 pEl.value = '';
                 iEl.value = '';
+                eEl.value = '';
                 setNamesStatus('Dodano: ' + p + ' ' + i, false);
                 pEl.focus();
             } catch (error) {
@@ -915,7 +939,7 @@ AAEAAAASAQAABAAgR0RFRqZDpEwAAAOQAAACWEdQT1NOLGgfAABalAAAWPxHU1VC+5TlMQAARJwAABX2
                 btn.disabled = !namesFromSheet;
             }
         });
-        ['newPrezime', 'newIme'].forEach(function(id) {
+        ['newPrezime', 'newIme', 'newEmail'].forEach(function(id) {
             document.getElementById(id).addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') document.getElementById('addNameBtn').click();
             });
@@ -971,7 +995,8 @@ weekRows.forEach(function(r) {
         // Fix: Use index 4 (Column E) for 'DA'
         ne: (r[4] === 'DA') ? 'DA' : '', 
         
-        os: (r[5] === 'DA') ? 'DA' : '', 
+        os: (r[5] && r[5] !== '-') ? String(r[5]) : '',   // razlog ostanka (ili 'DA' u starim prijavama)
+        
         pO: (r[6] && r[6] !== '-') ? r[6] : ':',
         pR: (r[7] === 'DA') ? 'DA' : '', 
         pV: (r[8] === 'DA') ? 'DA' : '',
@@ -1047,6 +1072,23 @@ weekRows.forEach(function(r) {
             dc(x,sY+hH/2,cW[11],hH/2,['prijava','RUČAK'],clr.n,clr.r,7,1,'center');
             dc(x+cW[11],sY+hH/2,cW[12],hH/2,['prijava','VEČERA'],clr.n,clr.r,7,1,'center');
 
+            // Razlog ostanka mora stati u uski stupac OSTAJE: smanji slovo, a "školski izlet" po potrebi u dva retka
+            function fitReason(text){
+                if(!text) return {t:'',s:rowFs};
+                const maxW=cW[4]-1.4;
+                doc.setFont('RobotoCondensed','normal');
+                let s=rowFs;
+                doc.setFontSize(s);
+                while(s>7 && doc.getTextWidth(text)>maxW){ s-=0.5; doc.setFontSize(s); }
+                if(doc.getTextWidth(text)<=maxW) return {t:text,s:s};
+                const k=text.indexOf(' ');
+                const lines=k>0?[text.slice(0,k),text.slice(k+1)]:[text];
+                s=Math.min(rowFs,8);
+                doc.setFontSize(s);
+                while(s>5.5 && Math.max.apply(null,lines.map(function(l){return doc.getTextWidth(l);}))>maxW){ s-=0.5; doc.setFontSize(s); }
+                return {t:lines.length>1?lines:lines[0],s:s};
+            }
+
             people.forEach(function(pe,i){
                 const d=dataMap[pe.p+' '+pe.i]||{ne:'',os:'',pO:':',pR:'',pV:'',sO:':',sR:'',sV:'',nR:'',nV:''};
                 const y=sY+hH+(i*rH);
@@ -1055,7 +1097,8 @@ weekRows.forEach(function(r) {
                 dc(x,y,cW[1],rH,pe.p,null,[0,0,0],rowFs,0,'left');x+=cW[1];
                 dc(x,y,cW[2],rH,pe.i,null,[0,0,0],rowFs,0,'left');x+=cW[2];
                 dc(x,y,cW[3],rH,d.ne,null,[0,0,0],rowFs,0,'center');x+=cW[3];
-                dc(x,y,cW[4],rH,d.os,null,[0,0,0],rowFs,0,'center');x+=cW[4];
+                const fr=fitReason(d.os);
+                dc(x,y,cW[4],rH,fr.t,null,[0,0,0],fr.s,0,'center');x+=cW[4];
                 dc(x,y,cW[5],rH,d.pO,null,[0,0,0],rowFs,0,'center');x+=cW[5];
                 dc(x,y,cW[6],rH,d.pR,null,[0,0,0],rowFs,0,'center');x+=cW[6];
                 dc(x,y,cW[7],rH,d.pV,null,[0,0,0],rowFs,0,'center');x+=cW[7];
@@ -1075,9 +1118,9 @@ weekRows.forEach(function(r) {
                 const d = dataMap[pe.p+' '+pe.i];
                 if(!d) return;
                 if(d.ne==='DA')tot.ne++;
-                if(d.os==='DA')tot.os++;
+                if(d.os)tot.os++;
                 if(/\d/.test(d.sO))tot.sT++;   // upisano vrijeme odlaska u subotu
-                if(d.ne!=='DA' && (/\d/.test(d.pO) || /\d/.test(d.sO) || d.os==='DA'))tot.nf++;   // noći na petak
+                if(d.ne!=='DA' && (/\d/.test(d.pO) || /\d/.test(d.sO) || d.os))tot.nf++;   // noći na petak
                 if(d.pR==='DA')tot.pR++;
                 if(d.pV==='DA')tot.pV++;
                 if(d.sR==='DA')tot.sR++;

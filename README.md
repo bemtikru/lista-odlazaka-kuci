@@ -51,7 +51,7 @@ without `?skupina=` opens the last group you used (or `DEFAULT_GROUP` from `conf
 | Tab | Columns | Notes |
 |---|---|---|
 | `Sheet1` | A Timestamp · B Week · C Email · D Ime i Prezime · E Idem prije petka · F Ostajem cijeli vikend · G–I Petak (vrijeme, ručak, večera) · J–L Subota · M–N Nedjelja (ručak, večera) · **O Skupina** | One row per submission; for each person the **latest by Timestamp** counts (so sorting the sheet does not matter). If you sort or filter, include **column O** in the range, or use *Data → Filter views* |
-| `Imena` | A Prezime · B Ime · C Skupina | The names shown in each group's drop-down and on the PDF |
+| `Imena` | A Prezime · B Ime · C Skupina · **D Email** | The members of each group (names on the PDF). Column D holds the Google e-mail(s) that belong to the member – up to 3, separated by commas; an e-mail belongs to one member only |
 | `Admini` | A Email · B Skupine | `*` = all groups, or e.g. `3` or `3,5` |
 
 A **week runs from Saturday 00:00 to Friday 23:59** and is the list for the weekend that follows (Friday–Sunday).
@@ -95,15 +95,35 @@ It is labelled with the ISO week of that weekend, e.g. `2026-W46` for the weeken
 - After a submission (or logout) the form is cleared and every field is available again, so a correction can be sent at once
 - An empty report cannot be sent: a time, or DA on IDEM PRIJE PETKA / OSTAJEM CIJELI VIKEND is required
 
+## Member profiles (login = name)
+
+When a member's Google e-mail is entered in the `Imena` tab (admin page: *Upravljanje imenima* → *Uredi*, or column D),
+that account **is** that member:
+
+- After signing in the member sees *"Prijavljeni ste kao Novak Ana"* – there is no name drop-down any more.
+- A box at the top shows their **last submission for the current weekend**, or **"Nije poslano"**. It is display-only;
+  the form is not pre-filled. Past weeks are not shown.
+- The name, e-mail and group of a submission come from the profile on the server, so a member can only submit for
+  themselves. The timestamp is set by the server.
+- Admins enter the e-mails. A member whose account is not linked yet sees a notice with the exact e-mail they signed in
+  with (to pass on to the admin). The switch **`REQUIRE_PROFILE`** in `Code.gs` decides what happens then:
+  `false` (default, transition) = they can still pick their name from the list; `true` = they cannot submit until linked.
+- Changing the e-mails in the tab (or removing the member) unlinks the account at once; renaming a member keeps the link.
+
+How to roll this out: `SETUP.md`, section E.
+
 ## Security model (short version)
 
 - A submission is only accepted if the name is on **that group's** list – a student cannot submit
-  into another group by editing the link.
+  into another group by editing the link. Members now sign in with a script-issued session (12 h); the script verifies
+  the Google login itself, so the e-mail and name of a submission cannot be forged from the browser.
+- A member can only ever read **their own** last submission.
 - Admin actions need a session issued by the script after a Google login **and** the email must be in
   the `Admini` tab. This is checked on every request, so removing a row from `Admini` cuts access
   immediately. Sessions last 12 hours and are signed with a secret that only the script knows.
 - A group-restricted admin (`3`) cannot read or change other groups, whatever they type in the link.
-- The list of names of a group is public (anyone with the webhook URL can read it).
+- The list of names of a group is public (anyone with the webhook URL can read it) – **but it never contains e-mails**;
+  e-mails are returned only to signed-in admins of that group.
 - **Treat edit access to the spreadsheet as full control** – whoever can edit it can edit `Admini`.
   Keep the sheet shared as *Restricted* (see `SETUP.md`).
 

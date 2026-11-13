@@ -32,7 +32,9 @@ The spreadsheet ID and the API key are **no longer needed** anywhere on the webs
 | `GROUP_COUNT` | 7 | Must be **identical** to `GROUP_COUNT` in `config.js` |
 | `LEGACY_GROUP` | 7 | Group that old rows/names without a group belong to (the pre-groups data) |
 | `MAX_NAMES` | 35 | Maximum names per group |
-| `SESSION_HOURS` | 12 | How long an admin stays signed in |
+| `SESSION_HOURS` | 12 | How long an admin or a member stays signed in |
+| `REQUIRE_PROFILE` | `false` | `false` = members whose Google account is not linked to a name can still pick their name (transition). `true` = only linked accounts can submit, and only for themselves |
+| `MAX_EMAILS` | 3 | Google e-mails per member |
 | `DEFAULT_NAMES` | 22 names | Seed list for group 7, used only when `Imena` is empty |
 
 After changing `Code.gs`: **Deploy → Manage deployments → ✏️ → Version: New version → Deploy**
@@ -56,6 +58,17 @@ After changing `Code.gs`: **Deploy → Manage deployments → ✏️ → Version
 
 - Email: the exact Google account (capitalisation is ignored).
 - Skupine: `*` for all groups, or group numbers separated by commas. Empty = cannot sign in.
+
+## The `Imena` tab
+
+| Prezime | Ime | Skupina | Email |
+|---|---|---|---|
+| Novak | Ana | 3 | `ana@gmail.com, ana.skola@skola.hr` |
+| Čular | Ivo | 3 | |
+
+- Email (column D): the Google account(s) of the member, separated by commas. Leave empty if unknown.
+- An e-mail may appear in only one row (a duplicate makes that account refuse to sign in).
+- The public name list used by the student drop-down never includes this column.
 
 ## Common mistakes
 

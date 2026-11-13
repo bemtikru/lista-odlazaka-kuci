@@ -126,6 +126,34 @@
             min-height: 16px;
         }
 
+        .login-hint.info { color: #555; }
+        .profile-box {
+            background: #fff;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin: 0 0 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+            text-align: left;
+            font-size: 14px;
+            color: #333;
+        }
+        .profile-who { font-weight: 700; margin-bottom: 8px; }
+        .trace-head { font-weight: 600; margin-bottom: 4px; }
+        .trace-line { margin: 2px 0; }
+        .trace-sent { color: #666; font-size: 12px; margin-top: 6px; }
+        .trace-none { color: #c62828; font-weight: 700; }
+        .profile-notice {
+            background: #fff3cd;
+            border: 1px solid #e0a800;
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin: 0 0 16px;
+            font-size: 14px;
+            color: #5c4400;
+            text-align: left;
+        }
+        .profile-notice.block { background: #fdecea; border-color: #c62828; color: #7a1c1c; }
+
         .form-screen {
             background: #7FFFD4;
             display: none;
@@ -365,6 +393,12 @@
                 <p>U.d. Karlovac</p>
             </div>
 
+            <div class="profile-notice" id="profileNotice" style="display:none;"></div>
+            <div class="profile-box" id="profileBox" style="display:none;">
+                <div class="profile-who" id="profileWho"></div>
+                <div id="traceBox"></div>
+            </div>
+
             <form id="dataForm">
                 <!-- Name Section (Cyan) -->
                 <div class="form-section cyan">
@@ -397,7 +431,11 @@
                         <label class="form-label">OSTAJEM CIJELI VIKEND</label>
                         <select class="form-select" name="ostajem_cijeli_vikend">
                             <option value="-">-</option>
-                            <option value="DA">DA</option>
+                            <option value="praksa">praksa</option>
+                            <option value="nastava">nastava</option>
+                            <option value="školski izlet">školski izlet</option>
+                            <option value="prijevoz">prijevoz</option>
+                            <option value="ostalo">ostalo</option>
                         </select>
                     </div>
                 </div>
@@ -539,6 +577,9 @@
         let userToken = null;
         let userInfo = null;
         let tokenClient = null;
+        let studentSession = null;   // {token, expires}: sesiju izdaje skripta nakon Google prijave
+        let profile = null;          // {prezime, ime, skupina} ako je Google račun povezan s imenom
+        let requireProfile = false;  // true = prijavu mogu poslati samo povezani računi
 
         // Check if mobile device
         function isMobile() {
@@ -584,21 +625,36 @@
         }
 
         // Handle Google Sign-In response
-        function handleCredentialResponse(response) {
+        async function handleCredentialResponse(response) {
             const credential = response.credential;
             const payload = parseJwt(credential);
-            
+            const hint = document.getElementById('loginHint');
+
             userInfo = {
                 email: payload.email,
                 name: payload.name,
                 picture: payload.picture
             };
-
             userToken = credential;
-            showFormScreen();
-        }
 
-        // Parse JWT token
+            hint.className = 'login-hint info';
+            hint.textContent = 'Prijava u tijeku…';
+            try {
+                const result = await callApi({ action: 'studentLogin', credential: credential, week: getCurrentWeek() });
+                studentSession = { token: result.session, expires: result.expires };
+                userInfo.email = result.email || userInfo.email;
+                applyStudentState(result);
+                hint.textContent = '';
+                hint.className = 'login-hint';
+                showFormScreen();
+            } catch (error) {
+                hint.className = 'login-hint';
+                hint.textContent = error.message;
+                userInfo = null;
+                userToken = null;
+                try { google.accounts.id.disableAutoSelect(); } catch (e) {}
+            }
+        }
         function parseJwt(token) {
             const base64Url = token.split('.')[1];
             const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -615,14 +671,130 @@
             document.getElementById('userEmail').textContent = userInfo.email;
         }
 
-        // Logout
-        document.getElementById('logoutBtn').addEventListener('click', () => {
+        // Poziv skripte (odgovor se uvijek čita; kod "SESSION" znači da je sesija istekla)
+        async function callApi(payload) {
+            let result;
+            try {
+                const response = await fetch(CONFIG.WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+                result = await response.json();
+            } catch (error) {
+                console.error('API error:', error);
+                throw new Error('Nema veze s poslužiteljem.');
+            }
+            if (!result.success) {
+                const err = new Error(result.error || 'Radnja nije uspjela.');
+                err.code = result.code;
+                throw err;
+            }
+            return result;
+        }
+
+        // "6.11.-8.11.2026." za oznaku tjedna "2026-W45" (petak-nedjelja tog vikenda)
+        function formatWeekend(label) {
+            const m = /^(\d{4})-W(\d{1,2})$/.exec(label);
+            if (!m) return '';
+            const year = parseInt(m[1], 10), week = parseInt(m[2], 10);
+            const jan4 = new Date(Date.UTC(year, 0, 4));
+            const monday = new Date(jan4.getTime() + ((week - 1) * 7 - ((jan4.getUTCDay() || 7) - 1)) * 86400000);
+            const day = (offset) => new Date(monday.getTime() + offset * 86400000);
+            const fri = day(4), sun = day(6);
+            const dm = (d) => d.getUTCDate() + '.' + (d.getUTCMonth() + 1) + '.';
+            const start = (fri.getUTCFullYear() !== sun.getUTCFullYear()) ? dm(fri) + fri.getUTCFullYear() + '.' : dm(fri);
+            return start + '-' + dm(sun) + sun.getUTCFullYear() + '.';
+        }
+
+        // Retci prijave (stupci A-N) -> kratak opis za učenika
+        function describeSubmission(row) {
+            const time = (v) => (v && v !== '-' && v !== ':') ? v : '–';
+            const yes = (v) => v === 'DA' ? 'DA' : '–';
+            if (row[4] === 'DA') return ['Idem prije petka (nisam u domu cijeli tjedan)'];
+            const lines = [];
+            if (row[5] && row[5] !== '-') lines.push(row[5] === 'DA' ? 'Ostajem cijeli vikend' : 'Ostajem cijeli vikend – ' + row[5]);
+            lines.push('Petak: odlazak ' + time(row[6]) + ' · ručak ' + yes(row[7]) + ' · večera ' + yes(row[8]));
+            lines.push('Subota: odlazak ' + time(row[9]) + ' · ručak ' + yes(row[10]) + ' · večera ' + yes(row[11]));
+            lines.push('Nedjelja: ručak ' + yes(row[12]) + ' · večera ' + yes(row[13]));
+            return lines;
+        }
+
+        // Zadnja prijava za OVAJ tjedan (ili "Nije poslano") - samo prikaz, obrazac se ne popunjava
+        function renderTrace(last) {
+            const box = document.getElementById('traceBox');
+            box.innerHTML = '';
+            const add = (cls, text) => { const d = document.createElement('div'); d.className = cls; d.textContent = text; box.appendChild(d); };
+            add('trace-head', 'Vaša zadnja prijava za vikend ' + formatWeekend(getCurrentWeek()) + ':');
+            if (!last) { add('trace-none', 'Nije poslano'); return; }
+            describeSubmission(last.row).forEach((line) => add('trace-line', line));
+            if (last.sentAt) {
+                add('trace-sent', 'Poslano: ' + new Date(last.sentAt).toLocaleString('hr-HR', { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }));
+            }
+        }
+
+        function nameSection() { return document.getElementById('imePrezime').closest('.form-section'); }
+
+        // Stanje obrasca prema profilu koji vrati skripta
+        function applyStudentState(result) {
+            profile = result.profile || null;
+            requireProfile = !!result.requireProfile;
+            const email = result.email || (userInfo && userInfo.email) || '';
+            const notice = document.getElementById('profileNotice');
+            const box = document.getElementById('profileBox');
+            notice.style.display = 'none';
+            notice.className = 'profile-notice';
+            box.style.display = 'none';
+            document.getElementById('dataForm').style.display = '';
+            nameSection().style.display = '';
+
+            if (profile) {
+                const full = profile.prezime + ' ' + profile.ime;
+                const select = document.getElementById('imePrezime');
+                select.innerHTML = '';
+                const opt = document.createElement('option');
+                opt.value = full;
+                opt.textContent = full;
+                opt.selected = true;
+                select.appendChild(opt);
+                select.value = full;
+                nameSection().style.display = 'none';
+                document.getElementById('profileWho').textContent = 'Prijavljeni ste kao ' + full + ' (' + profile.skupina + '. odgojna skupina)';
+                document.getElementById('groupLabel').textContent = profile.skupina + '.odg. skupine';
+                document.title = 'Lista odlazaka kući - ' + profile.skupina + '. odgojna skupina';
+                box.style.display = 'block';
+                renderTrace(result.last);
+            } else if (requireProfile) {
+                document.getElementById('dataForm').style.display = 'none';
+                notice.className = 'profile-notice block';
+                notice.textContent = 'Vaš Google račun (' + email + ') nije povezan ni s jednim imenom. Pošaljite ovu adresu e-pošte administratoru svoje odgojne skupine.';
+                notice.style.display = 'block';
+            } else {
+                notice.textContent = 'Vaš Google račun (' + email + ') još nije povezan s vašim imenom. Odaberite svoje ime i javite ovu adresu e-pošte administratoru kako bi se ime ubuduće pojavljivalo samo.';
+                notice.style.display = 'block';
+            }
+        }
+
+        function endStudentSession(message) {
+            studentSession = null;
+            profile = null;
+            requireProfile = false;
             userToken = null;
             userInfo = null;
+            document.getElementById('profileNotice').style.display = 'none';
+            document.getElementById('profileBox').style.display = 'none';
+            document.getElementById('dataForm').style.display = '';
+            nameSection().style.display = '';
+            document.getElementById('groupLabel').textContent = GROUP ? GROUP + '.odg. skupine' : '';
             document.getElementById('formScreen').classList.remove('active');
             document.getElementById('loginScreen').style.display = 'block';
             document.getElementById('dataForm').reset();
-        });
+            document.getElementById('loginHint').textContent = message || '';
+            loadStudentNames();   // vraća popis imena u izbornik (u profilu je bilo samo vlastito ime)
+        }
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', () => { endStudentSession(''); });
 
         // Get current week identifier
         function getCurrentWeek() {
@@ -683,12 +855,12 @@
             // 3. Any time is selected (not "-")
             const hasValidEntry = 
                 idemPrijePetka === 'DA' || 
-                ostajemCijeliVikend === 'DA' || 
+                (ostajemCijeliVikend && ostajemCijeliVikend !== '-') || 
                 (petakVrijeme && petakVrijeme !== '-') || 
                 (subotaVrijeme && subotaVrijeme !== '-');
             
             if (!hasValidEntry) {
-                errorMsg.textContent = 'Molimo ispunite barem jedno polje: odaberite vrijeme odlaska, ili označite "IDEM PRIJE PETKA" ili "OSTAJEM CIJELI VIKEND" sa DA.';
+                errorMsg.textContent = 'Molimo ispunite barem jedno polje: odaberite vrijeme odlaska, ili označite "IDEM PRIJE PETKA" sa DA ili odaberite razlog u "OSTAJEM CIJELI VIKEND".';
                 errorMsg.classList.add('show');
                 setTimeout(() => {
                     errorMsg.classList.remove('show');
@@ -702,11 +874,12 @@
             errorMsg.classList.remove('show');
 
             try {
+                if (!studentSession) throw new Error('Prijavite se ponovno.');
                 const data = {
-                    timestamp: new Date().toISOString(),
+                    action: 'submit',
+                    session: studentSession.token,
                     week: getCurrentWeek(),
-                    email: userInfo.email,
-                    skupina: GROUP,
+                    skupina: profile ? profile.skupina : GROUP,
                     ime_prezime: formData.get('ime_prezime'),
                     idem_prije_petka: formData.get('idem_prije_petka'),
                     ostajem_cijeli_vikend: formData.get('ostajem_cijeli_vikend'),
@@ -720,7 +893,10 @@
                     nedjelja_vecera: formData.get('nedjelja_vecera')
                 };
 
-                await submitToGoogleSheets(data);
+                const result = await submitToGoogleSheets(data);
+                document.getElementById('profileBox').style.display = 'block';
+                if (!profile) document.getElementById('profileWho').textContent = '';
+                renderTrace(result.last);
                 
                 successMsg.classList.add('show');
                 setTimeout(() => {
@@ -732,6 +908,7 @@
                 
             } catch (error) {
                 console.error('Error:', error);
+                if (error.code === 'SESSION') { endStudentSession(error.message); return; }
                 errorMsg.textContent = 'Greška pri slanju podataka: ' + (error.message || 'Pokušajte ponovno.');
                 errorMsg.classList.add('show');
                 setTimeout(() => {
@@ -743,23 +920,9 @@
             }
         });
 
-        // Submit data to Google Sheets via Apps Script webhook.
-        // Odgovor se čita, pa učenik vidi pravu poruku ako poslužitelj odbije prijavu.
-        async function submitToGoogleSheets(data) {
-            let result;
-            try {
-                const response = await fetch(CONFIG.WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify(data)
-                });
-                result = await response.json();
-            } catch (error) {
-                console.error('Submit error:', error);
-                throw new Error('Nema veze s poslužiteljem.');
-            }
-            if (!result.success) throw new Error(result.error || 'Prijava nije spremljena.');
-            return result;
+        // Slanje prijave: odgovor se čita, pa učenik vidi pravu poruku ako poslužitelj odbije prijavu.
+        function submitToGoogleSheets(data) {
+            return callApi(data);
         }
 
         // Učitava popis imena ove odgojne skupine iz kartice "Imena" (preko Apps Scripta).
@@ -775,6 +938,7 @@
                 clearTimeout(timer);
                 const result = await response.json();
                 if (!result.success || !Array.isArray(result.names)) throw new Error(result.error || 'Neispravan odgovor');
+                if (profile) return;   // u profilu je ime već određeno
 
                 const collator = new Intl.Collator('hr');
                 const names = result.names
@@ -902,7 +1066,7 @@
             const subotaVrijemeGroup = subotaVrijemeSelect.closest('.form-group');
             
             function updateFields() {
-                const isOstajem = ostajemSelect.value === 'DA';
+                const isOstajem = ostajemSelect.value !== '-';   // bilo koji razlog
                 
                 if (isOstajem) {
                     // Disable IDEM PRIJE PETKA

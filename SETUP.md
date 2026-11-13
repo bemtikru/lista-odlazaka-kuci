@@ -6,7 +6,8 @@ Two paths:
 - **[B. Installing from scratch](#b-installing-from-scratch)**
 
 Then: [C. Adding a group, an admin, or names](#c-day-to-day-adding-a-group-an-admin-or-names) ·
-[D. Troubleshooting](#d-troubleshooting)
+[D. Troubleshooting](#d-troubleshooting) ·
+[E. Member profiles: rollout](#e-member-profiles-login--name-rollout)
 
 ---
 
@@ -143,6 +144,10 @@ new script version, upload `config.js`.
 | `…Kartica "Imena" ne postoji…` | Run `setup` – step A3 |
 | A Google sign-in page | Deployment access is not *Anyone* – edit the deployment |
 
+**Member sees "nije povezan ni s jednim imenom" (or the notice with their e-mail).** Their account is not in the `Imena` tab yet – add the exact address shown in the notice (section E).
+
+**"Ovaj Google račun povezan je s više imena".** The same e-mail is in two rows of `Imena` – remove it from one.
+
 **"Nemate ovlasti".** The signed-in email is not in `Admini` (or that row has no groups). Check for
 typos and that they chose the right Google account.
 
@@ -158,3 +163,33 @@ Advanced → Go to … (unsafe) → Allow.
 
 **The permission page in your Google account calls the script "Untitled project".** Cosmetic –
 the name comes from the hidden Google Cloud project behind the script. It is your own script.
+
+---
+
+## E. Member profiles (login = name): rollout
+
+Members whose Google e-mail is entered by an admin see their own name after signing in, and a box with their last
+submission for the weekend (see `README.md`, *Member profiles*). Do the steps **in this order** – script first.
+
+1. **Script.** Paste the new `Code.gs`, save, and run **`setup`** once (it adds the `Email` header in column D of `Imena`;
+   nothing else changes). Then *Deploy → Manage deployments → ✏️ → Version: New version → Deploy*.
+   `REQUIRE_PROFILE` stays `false`. Old pages keep working during the transition.
+2. **Site files.** Upload `admin.html` first, then `index.html` (and the docs). Wait until the deployment is *Ready*, press Ctrl+F5.
+3. **Collect the e-mails.** Ask each member for the Google account they use to sign in (a short form or a message to the
+   group works). Tell them the address must be the one they sign in with.
+4. **Enter them.** Admin page → *Upravljanje imenima*: *Uredi* next to the name, or *Dodaj više imena odjednom*
+   (`Prezime Ime e-mail`). The counter shows *"Bez e-pošte: N od M"* until everyone is covered. You can also type them
+   into column D of the `Imena` tab. Up to 3 addresses per member (e.g. school + personal), separated by commas.
+   An address can belong to one member only.
+5. **Check.** Sign in as a member (or ask one): they should see *"Prijavljeni ste kao …"* and the *Nije poslano* box.
+   A member who is not linked yet still sees the name list, plus a notice showing the e-mail they signed in with –
+   copy that exact address into the sheet.
+6. **Switch it on (when everyone is linked).** In `Code.gs` set `var REQUIRE_PROFILE = true;`, save, publish a new
+   version. From then on only linked accounts can submit, and only for themselves. Old cached pages are told to refresh.
+   To go back, set it to `false` again.
+
+Tips: Gmail ignores dots in addresses, but the sheet does not – use the address exactly as shown in the notice.
+A member with two Google accounts needs both addresses in the same row.
+
+**Rolling back the whole feature:** put back the previous `Code.gs`/`index.html`/`admin.html`; the extra column in `Imena`
+is harmless.
