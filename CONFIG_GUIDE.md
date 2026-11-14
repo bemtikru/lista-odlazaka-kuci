@@ -35,6 +35,7 @@ The spreadsheet ID and the API key are **no longer needed** anywhere on the webs
 | `SESSION_HOURS` | 12 | How long an admin or a member stays signed in |
 | `REQUIRE_PROFILE` | `false` | `false` = members whose Google account is not linked to a name can still pick their name (transition). `true` = only linked accounts can submit, and only for themselves |
 | `MAX_EMAILS` | 3 | Google e-mails per member |
+| `STAY_REASONS` | praksa, nastava, školski izlet, prijevoz, ostalo | The accepted reasons for OSTAJEM CIJELI VIKEND. **The same list must be in the `ostajem_cijeli_vikend` drop-down in `index.html`** (a reason the script does not know is refused) |
 | `DEFAULT_NAMES` | 22 names | Seed list for group 7, used only when `Imena` is empty |
 
 After changing `Code.gs`: **Deploy → Manage deployments → ✏️ → Version: New version → Deploy**

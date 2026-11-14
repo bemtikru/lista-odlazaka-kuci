@@ -72,7 +72,7 @@ It is labelled with the ISO week of that weekend, e.g. `2026-W46` for the weeken
   - **Ručak / Večera Petak**
   - **Noći na subotu** – members who entered a departure time on Saturday
   - **Ručak / Večera Subota**
-  - **Ostaje cijeli vikend** – members who chose DA on OSTAJEM CIJELI VIKEND
+  - **Ostaje cijeli vikend** – members who chose a reason on OSTAJEM CIJELI VIKEND
   - **Ručak / Večera Nedjelja**
   - **Nedostaje prijava** – how many members have not submitted yet, with their names
 - **Add, edit (Uredi) and remove names** of the group, including *Dodaj više imena odjednom*
@@ -83,7 +83,9 @@ It is labelled with the ISO week of that weekend, e.g. `2026-W46` for the weeken
 ## Form rules for students
 
 - **IDEM PRIJE PETKA = DA** disables everything below it
-- **OSTAJEM CIJELI VIKEND = DA** disables IDEM PRIJE PETKA and both "vrijeme odlaska" fields
+- **OSTAJEM CIJELI VIKEND** is a choice of reason: `-` (default), `praksa`, `nastava`, `školski izlet`, `prijevoz`, `ostalo`.
+  Any reason (not `-`) disables IDEM PRIJE PETKA and both "vrijeme odlaska" fields. The reason is saved in column F of `Sheet1`,
+  shown in the member's "last submission" box, and printed in the **OSTAJE – razlog** column of the PDF
 - A time in **PETAK VRIJEME ODLASKA** disables IDEM/OSTAJEM and the Saturday + Sunday sections
 - A time in **SUBOTA VRIJEME ODLASKA** disables IDEM/OSTAJEM, Friday time and the Sunday section
 - The departure time on **PETAK** and on **SUBOTA** decides that day's meals:
@@ -93,7 +95,7 @@ It is labelled with the ISO week of that weekend, e.g. `2026-W46` for the weeken
 
   Locked meals are cleared and stay empty in the sheet. Changing the time re-applies the rule.
 - After a submission (or logout) the form is cleared and every field is available again, so a correction can be sent at once
-- An empty report cannot be sent: a time, or DA on IDEM PRIJE PETKA / OSTAJEM CIJELI VIKEND is required
+- An empty report cannot be sent: a time, DA on IDEM PRIJE PETKA, or a reason on OSTAJEM CIJELI VIKEND is required
 
 ## Member profiles (login = name)
 

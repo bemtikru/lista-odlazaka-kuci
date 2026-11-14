@@ -58,7 +58,7 @@ Total width ≈ 187 mm.
 | Column | Content |
 |---|---|
 | NEDOSTAJE | `DA` when the person chose **IDEM PRIJE PETKA = DA** |
-| OSTAJE | `DA` when the person chose **OSTAJEM CIJELI VIKEND = DA** |
+| OSTAJE – razlog | the **reason** chosen on OSTAJEM CIJELI VIKEND (`praksa`, `nastava`, `školski izlet`, `prijevoz`, `ostalo`); older submissions that say `DA` print `DA`. The text is shrunk to fit the narrow column ("školski izlet" at a smaller size) |
 | vrijeme odlaska | the time (e.g. `14:00`), or `:` when none was entered |
 | RUČAK / VEČERA | `DA` when chosen, otherwise empty |
 
@@ -74,7 +74,7 @@ Total width ≈ 187 mm.
 | Column | Total |
 |---|---|
 | NEDOSTAJE | members with `DA` on IDEM PRIJE PETKA |
-| OSTAJE | members with `DA` on OSTAJEM CIJELI VIKEND |
+| OSTAJE | members who chose any reason on OSTAJEM CIJELI VIKEND (a count, not a breakdown) |
 | PETAK vrijeme odlaska | **noći na petak** = members who set a Friday or Saturday departure time or stay the whole weekend, excluding IDEM PRIJE PETKA |
 | SUBOTA vrijeme odlaska | **noći na subotu** = members who entered a departure time on Saturday |
 | RUČAK / VEČERA columns | members with `DA` |
